@@ -3,6 +3,14 @@
 
 {Board} = require '../src/Board'
 
+# I really don't like importing another class than what is being tested
+# but the alternative would be to have the board class provide an api
+# that reaches into the Tile class and returns the values
+# however, that means more methods to write unit tests for
+# so I take the lesser evil and am bringing in the Tile class
+{Tile} = require '../src/Tile'
+{TILE_WIDTH, TILE_HEIGHT} = Tile.dimensions
+
 describe 'Board', ->
   board = new Board
   it 'exports the class', ->
@@ -21,17 +29,14 @@ describe 'Board', ->
     it 'returns the number of columns of tiles the board contains', ->
       expect(board.columns()).to.equal 10
   
-  describe.skip '#clicked', ->
+  describe '#clicked', ->
     it 'delegates a mouse click to the respective Tile instance', ->
-      # we now need to simulate a mouse event
-      # to pass to the clicked method
-      # then we need to spy on the target Tile instance
-      # and expect that the tile gets the clicked message passed to it
-      # in our case, the reveal method should be called
-      
-      # so first, let's say that we simulate a click on the tile at
-      # column = 4, row = 5
-      
-      # our tile class is going to expose it's width and height
-      # it doesn't right now, so we cannot finish this unit test
-      # so we can leave it skipped until we have the Tile class working
+      column = 4
+      row = 5
+      mouseEvent =
+        clientX: TILE_WIDTH * column
+        clientY: TILE_HEIGHT * row
+      tile = board.tileAt column, row
+      revealSpy = sinon.spy tile, 'reveal'
+      board.clicked mouseEvent
+      expect(revealSpy).to.have.been.calledOnce

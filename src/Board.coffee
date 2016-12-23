@@ -1,8 +1,10 @@
-Tile = require './Tile'
+{Tile} = require './Tile'
 
 BOARD_ROWS = 10
 BOARD_COLS = 10
 BOARD_SIZE = BOARD_ROWS * BOARD_COLS
+
+{TILE_WIDTH, TILE_HEIGHT} = Tile.dimensions
 
 getRandomTile = ->
   types = []
@@ -10,6 +12,10 @@ getRandomTile = ->
   types[index | 0]
 
 class Board
+  @dimensions:
+    ROWS: BOARD_ROWS
+    COLUMNS: BOARD_COLS
+
   constructor: ->
     # booya!
     @tiles = []
@@ -20,5 +26,16 @@ class Board
         
   rows: -> BOARD_ROWS 
   columns: -> BOARD_COLS
+  
+  tileAt: (x, y) ->
+    @tiles[x + y * BOARD_COLS]
+    
+  clicked: (mouseEvent) ->
+    mouseX = mouseEvent.clientX or mouseEvent.x
+    mouseY = mouseEvent.clientY or mouseEvent.y
+    column = mouseX / TILE_WIDTH | 0
+    row = mouseY / TILE_HEIGHT | 0
+    targetTile = @tileAt column, row
+    targetTile.reveal()
   
 module.exports = Board: Board
