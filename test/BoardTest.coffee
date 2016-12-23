@@ -11,24 +11,30 @@
 {Tile} = require '../src/Tile'
 {TILE_WIDTH, TILE_HEIGHT} = Tile.dimensions
 
+
+# we have to import Game because Board requires an instance
+# of Game to function correctly
+{Game} = require '../src/Game'
+
 describe 'Board', ->
-  board = new Board
+  game = new Game
+  board = new Board game
   it 'exports the class', ->
-    expect(Board).not.to.be.undefined
+    expect(Board).to.exist
+
+  it 'has dimensions', ->
+    expect(Board.dimensions).to.exist
+    {ROWS,COLUMNS,WIDTH,HEIGHT} = Board.dimensions
+    expect(ROWS).to.equal 10
+    expect(COLUMNS).to.equal 10
+    expect(WIDTH).to.equal 320
+    expect(HEIGHT).to.equal 320
 
   describe 'constructor', ->
     it 'creates the tiles array', ->
       expect(board.tiles).to.exist
       expect(board.tiles).to.have.lengthOf 100
 
-  describe '#rows', ->
-    it 'returns the number of rows of tiles the board contains', ->
-      expect(board.rows()).to.equal 10
-
-  describe '#columns', ->
-    it 'returns the number of columns of tiles the board contains', ->
-      expect(board.columns()).to.equal 10
-  
   describe '#clicked', ->
     it 'delegates a mouse click to the respective Tile instance', ->
       column = 4
