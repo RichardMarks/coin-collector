@@ -15,12 +15,13 @@ global.window =
     setItem: (pref, value) -> ls[pref] = value
     getItem: (pref) -> ls[pref]
 
-  # this is a mock for the btoa and atob methods
-  # note that it does not do anything but pass through the input
-  # in the browser, the return values would be appropriate. this
-  # however lets our tests run correctly
-  btoa: (s) -> s
-  atob: (s) -> s
+  btoa: (s) ->
+    buf = new Buffer s
+    buf.toString 'base64'
+
+  atob: (s) ->
+    buf = new Buffer s, 'base64'
+    buf.toString 'ascii'
 
 module.exports =
   TRUE_FALSE: TRUE_FALSE

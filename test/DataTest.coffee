@@ -14,6 +14,10 @@ describe 'Data', ->
 
     it 'sets a unique identifier', ->
       expect(data.uuid).to.exist
+    
+    it 'reloads last uuid', ->
+      nextData = new Data
+      expect(data.uuid).to.deep.equal nextData.uuid
 
   describe '#write', ->
     it 'should write a value to storage', ->
