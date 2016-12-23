@@ -67,3 +67,7 @@ describe 'Tile', ->
       tile.draw ctx
       expect(drawImageSpy).to.have.been.calledOnce
       expect(drawImageSpy).to.have.been.calledWithExactly image, pit.x, pit.y, pit.width, pit.height, 0, 0, pit.width, pit.height
+      tile.reset()
+      tile.draw ctx
+      expect(drawImageSpy).to.have.been.calledTwice
+      expect(drawImageSpy.getCall(1)).to.have.been.calledWithExactly image, stone_alt.x, stone_alt.y, stone_alt.width, stone_alt.height, 0, 0, stone_alt.width, stone_alt.height
