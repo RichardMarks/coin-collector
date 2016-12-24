@@ -6,7 +6,7 @@ camelize = (name) ->
   ###
   name.replace /-[a-z]/g, camelMatcher
 
-pascalMatcher = (match, group) -> 
+pascalMatcher = (match, group) ->
   "#{group[0].toUpperCase()}#{group[1..-1].toLowerCase()}"
 
 pascalize = (name) ->

@@ -24,9 +24,11 @@ class Board
     @tiles = []
     tileset = @game.getTileset()
     for row in [0...BOARD_ROWS]
+      y = row * TILE_HEIGHT
       for col in [0...BOARD_COLS]
         kind = getRandomTile()
-        @tiles.push new Tile col, row, kind, tileset
+        x = col * TILE_WIDTH
+        @tiles.push new Tile x, y, kind, tileset
 
   reset: ->
     # re-generate a new board
@@ -48,19 +50,33 @@ class Board
     column = mouseX / TILE_WIDTH | 0
     row = mouseY / TILE_HEIGHT | 0
     tile = @tileAt column, row
+    
     if tile
-      # flip the tile
-      tile.reveal()
-      # tell the game what was revealed by the click
-      payload =
-        mouseX: mouseX
-        mouseY: mouseY
-        row: row
-        column: column
-        tile: tile.kind
-      message = 
-        event: 'revealed-tile'
-        payload: payload
-      @game.sendMessage message, @, @game
+      if not tile.revealed
+        # flip the tile
+        tile.reveal()
+        # tell the game what was revealed by the click
+        payload =
+          mouseX: mouseX
+          mouseY: mouseY
+          row: row
+          column: column
+          tile: tile.kind
+        message =
+          event: 'revealed-tile'
+          payload: payload
+        @game.sendMessage message, @, @game
+      else
+        # special case for clicking twice on a coin, we collect the coin on second click
+        if tile.kind is 'coin'
+          tile.kind = 'dirt'
+          message =
+            event: 'coin-collected'
+            payload:
+              mouseX: mouseX
+              mouseY: mouseY
+              row: row
+              column: column
+          @game.sendMessage message, @, @game
   
 module.exports = Board: Board
