@@ -1,48 +1,58 @@
 gulp = require 'gulp'
-coffeeify = require 'gulp-coffeeify'
+browserify = require 'browserify'
 gutil = require 'gulp-util'
 path = require 'path'
-less = require 'gulp-less'
+# needed to rename output file
+source = require 'vinyl-source-stream'
+# needed to transform browserify to stream
+buffer = require 'vinyl-buffer'
+
+sourcemaps = require 'gulp-sourcemaps'
+uglify = require 'gulp-uglify'
 
 config =
-  app_path: 'src'
-  web_path: 'dist'
-  assets_path: 'assets'
-  app_main_file: 'app.js'
-  css_main_file: 'app.css'
-  styles_main_file: 'style/app.less'
+  src: path.resolve './src'
+  dist: path.resolve './dist'
+  assets: path.resolve './assets'
+  main: 'main.js'
+  node: path.resolve './node_modules'
 
 gulp.task 'coffee', ->
-  options =
-    options:
-      debug: true,
-      paths: [ "#{__dirname}/node_modules", "#{__dirname}/src/coffee" ]
-  gulp.src "#{config.app_path}/**/*.coffee"
-  .pipe coffeeify options
-  .pipe gulp.dest "#{config.web_path}/js"
-  .on 'error', gutil.log
-
-gulp.task 'less', ->
-  gulp.src config.styles_main_file
-  .pipe less paths: [ path.join(__dirname) ]
-  .pipe gulp.dest "#{config.web_path}/css"
+  DEBUG = true
+  cfg =
+    entries: ["#{config.src}/index.coffee"]
+    debug: DEBUG
+    extensions: ['.coffee']
+    transform: ['coffeeify']
+  ugly =
+    debug: DEBUG
+    options: 
+      sourceMap: true
+  browserify cfg
+  .bundle()
+  .pipe source config.main
+  .pipe buffer()
+  .pipe sourcemaps.init loadMaps: true, debug: DEBUG
+  .pipe uglify ugly
+  .pipe sourcemaps.write './'
+  .pipe gulp.dest config.dist
   .on 'error', gutil.log
 
 gulp.task 'assets', ->
-  gulp.src "#{config.assets_path}/**"
-  .pipe gulp.dest "#{config.web_path}/assets"
+  gulp.src "#{config.assets}/**"
+  .pipe gulp.dest "#{config.dist}/assets"
   .on 'error', gutil.log
 
 gulp.task 'index', ->
   gulp.src './index.html'
-  .pipe gulp.dest "#{config.web_path}"
+  .pipe gulp.dest "#{config.dist}"
   .on 'error', gutil.log
 
-gulp.task 'build', ['index', 'coffee', 'less', 'assets']
-gulp.task 'default', ['build', 'watch']
+gulp.task 'build', ['coffee', 'assets', 'index']
 
 gulp.task 'watch', ->
   gulp.watch "./index.html", ['index']
-  gulp.watch "#{config.app_path}/**/*.coffee", ['coffee']
-  gulp.watch "#{config.app_path}/**/*.(less)", ['less']
-  gulp.watch "#{config.assets_path}", ['assets']
+  gulp.watch "#{config.src}/**/*.coffee", ['coffee']
+  gulp.watch "#{config.assets}", ['assets']
+
+gulp.task 'default', ['build', 'watch']
