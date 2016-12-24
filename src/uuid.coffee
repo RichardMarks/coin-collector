@@ -21,7 +21,7 @@ guid =
     else
       data.substr 0, 5
   _hex: ->
-    options = '0123456789ABCDEF';
+    options = '0123456789ABCDEF'
     count = options.length
     index = Math.random * count | 0
     options.charAt index

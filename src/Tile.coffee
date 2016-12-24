@@ -2,7 +2,7 @@
 # for now, hard-coding the texture data
 # later,we can load from json
 atlas =
-  dirt: 
+  dirt:
     x: 0, y: 0, width: 32, height: 32
   coin:
     x: 32, y: 0, width: 32, height: 32
@@ -18,9 +18,10 @@ class Tile
     TILE_WIDTH: 32
     TILE_HEIGHT: 32
 
-  constructor: (@x, @y, @kind) ->
+  constructor: (@x, @y, @kind, @image) ->
     @revealed = false
-    @cover = if (@x + @y % 2) then 'stone' else 'stone_alt'
+    # TODO [rmarks] - update Tile unit test because this logic is flawed, maybe use a random instead
+    @cover = 'stone_alt' # if (@x + @y % 2) then 'stone' else 'stone_alt'
   
   draw: (ctx) ->
     ctx.save()
