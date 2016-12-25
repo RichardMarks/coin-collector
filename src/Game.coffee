@@ -74,6 +74,22 @@ class Game
     @updateScore = -> scoreDiv.innerText = "SCORE: #{@score}"
     @updateScore = @updateScore.bind @
     @updateScore()
+    
+    livesDiv = document.createElement 'div'
+    style =
+      backgroundColor: '#204060'
+      fontFamily: 'monospace'
+      textAlign: 'center'
+      fontSize: '48px'
+      color: 'white'
+      border: '4px solid black'
+      boxModel: 'border-box'
+      borderRadius: '24px'
+    Object.assign livesDiv.style, style
+    document.body.appendChild livesDiv
+    @updatelives = -> livesDiv.innerText = "lives: #{@lives}"
+    @updatelives = @updatelives.bind @
+    @updatelives()
   
   drawBoard: (tiles, ctx) ->
     tile.draw ctx for tile in tiles
@@ -118,5 +134,16 @@ class Game
     # console.log 'todo - handle collecting a coin'
     @score += POINTS_PER_COIN
     @updateScore()
+
+  onPitFallen: (message) ->
+    @sendMessage redraw, @, @
+    # console.log 'todo - handle collecting a coin'
+    @lives -= 1
+    @updatelives()
+
+
+
+
+
 
 module.exports = Game: Game

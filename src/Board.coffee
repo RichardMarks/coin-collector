@@ -66,6 +66,19 @@ class Board
           event: 'revealed-tile'
           payload: payload
         @game.sendMessage message, @, @game
+        
+        # TODO [scollins] heck yeah! successfull pit fallen event handler! except add logic
+        # if lives = 0
+        if tile.kind is 'pit'
+          #tile.kind = 'dirt'
+          message =
+            event: 'pit-fallen'
+            payload:
+              mouseX: mouseX
+              mouseY: mouseY
+              row: row
+              column: column
+          @game.sendMessage message, @, @game
       else
         # special case for clicking twice on a coin, we collect the coin on second click
         if tile.kind is 'coin'
