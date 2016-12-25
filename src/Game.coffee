@@ -92,7 +92,13 @@ class Game
     @updatelives()
   
   drawBoard: (tiles, ctx) ->
+    {offsetX, offsetY, scale} = @board
+    ctx.save()
+    ctx.translate offsetX, offsetY
+    ctx.scale scale.x, scale.y
+    
     tile.draw ctx for tile in tiles
+    ctx.restore()
 
   sendMessage: (message, sender, recepient) ->
     if recepient is @

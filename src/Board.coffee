@@ -21,6 +21,10 @@ class Board
     HEIGHT: BOARD_HEIGHT
 
   constructor: (@game) ->
+    @calculateBoardTransform()
+    @generateBoard()
+
+  generateBoard: ->
     @tiles = []
     tileset = @game.getTileset()
     for row in [0...BOARD_ROWS]
@@ -29,6 +33,16 @@ class Board
         kind = getRandomTile()
         x = col * TILE_WIDTH
         @tiles.push new Tile x, y, kind, tileset
+    
+  calculateBoardTransform: ->
+    # we scale the board for effect
+    @scale = 
+      x: 1.5
+      y: 1.5
+    
+    # we need to center the board in our game canvas
+    @offsetX = (@game.canvas.width - (@scale.x * BOARD_WIDTH)) * 0.5 | 0
+    @offsetY = (@game.canvas.height - (@scale.y * BOARD_HEIGHT)) * 0.5 | 0
 
   reset: ->
     # re-generate a new board
@@ -43,12 +57,22 @@ class Board
   
   tileAt: (x, y) ->
     @tiles[x + y * BOARD_COLS]
-    
+  
+  getTransformedMouseCoordinates: (mouseX, mouseY) ->
+    # because we transform the board we have to
+    # transform the mouse coordinates in kind
+    {offsetX, offsetY, scale} = @
+    tx = (mouseX - offsetX) / scale.x
+    ty = (mouseY - offsetY) / scale.y
+    # this returns the transformed coordinates as an object
+    x: tx, y: ty
+  
   clicked: (mouseEvent) ->
     mouseX = mouseEvent.clientX or mouseEvent.x
     mouseY = mouseEvent.clientY or mouseEvent.y
-    column = mouseX / TILE_WIDTH | 0
-    row = mouseY / TILE_HEIGHT | 0
+    {x, y} = @getTransformedMouseCoordinates mouseX, mouseY
+    column = x / TILE_WIDTH | 0
+    row = y / TILE_HEIGHT | 0
     tile = @tileAt column, row
     
     if tile
