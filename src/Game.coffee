@@ -140,6 +140,11 @@ class Game
     # console.log 'todo - handle collecting a coin'
     @score += POINTS_PER_COIN
     @updateScore()
+    if @board.coinsRemaining() <= 0
+      @board.revealAll()
+      @sendMessage redraw, @, @
+      # TODO - [rmarks] reset the board
+      @gameover = true
 
   onPitFallen: (message) ->
     @sendMessage redraw, @, @
