@@ -86,7 +86,7 @@ class Board
   
   calculateBoardTransform: ->
     # we scale the board for effect
-    @scale = 
+    @scale =
       x: 1.5
       y: 1.5
     
@@ -118,7 +118,7 @@ class Board
     x: tx, y: ty
   
   invalidClick: (transformedMouseX, transformedMouseY) ->
-    # if the mouse is outside the board, the click is invalid 
+    # if the mouse is outside the board, the click is invalid
     return true if transformedMouseX < 0 or transformedMouseX > BOARD_WIDTH
     return true if transformedMouseY < 0 or transformedMouseY > BOARD_HEIGHT
     false

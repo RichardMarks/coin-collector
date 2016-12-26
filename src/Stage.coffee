@@ -1,4 +1,4 @@
-class Canvas
+class Stage
   constructor: (@width, @height, parentElement) ->
     canvas = document.createElement 'canvas'
     canvas.width = @width
@@ -56,4 +56,4 @@ class Canvas
       left: "#{left}px"
     Object.assign @canvas.style, style
 
-module.exports = Canvas: Canvas
+module.exports = Stage: Stage

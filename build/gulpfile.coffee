@@ -10,12 +10,23 @@ buffer = require 'vinyl-buffer'
 sourcemaps = require 'gulp-sourcemaps'
 uglify = require 'gulp-uglify'
 
+coffeelint = require 'gulp-coffeelint'
+rimraf = require 'rimraf'
+
 config =
   src: path.resolve './src'
   dist: path.resolve './dist'
   assets: path.resolve './assets'
   main: 'main.js'
   node: path.resolve './node_modules'
+
+gulp.task 'clobber', (onComplete) -> rimraf config.node, onComplete
+gulp.task 'clean', (onComplete) -> rimraf config.dist, onComplete
+
+gulp.task 'lint', ->
+  gulp.src "#{config.src}/*.coffee"
+  .pipe coffeelint()
+  .pipe coffeelint.reporter()
 
 gulp.task 'coffee', ->
   DEBUG = true
@@ -48,11 +59,11 @@ gulp.task 'index', ->
   .pipe gulp.dest "#{config.dist}"
   .on 'error', gutil.log
 
-gulp.task 'build', ['coffee', 'assets', 'index']
+gulp.task 'build', ['clean', 'lint', 'coffee', 'assets', 'index']
 
 gulp.task 'watch', ->
   gulp.watch "./index.html", ['index']
-  gulp.watch "#{config.src}/**/*.coffee", ['coffee']
+  gulp.watch "#{config.src}/**/*.coffee", ['lint', 'coffee']
   gulp.watch "#{config.assets}", ['assets']
 
 gulp.task 'default', ['build', 'watch']

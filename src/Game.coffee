@@ -1,4 +1,4 @@
-{Canvas} = require './Canvas'
+{Stage} = require './Stage'
 {Board} = require './Board'
 {Data} = require './Data'
 {pascalize} = require './utils'
@@ -13,7 +13,7 @@ redraw =
 POINTS_PER_COIN = 25
 
 SFX_CHANNEL = id: 'sfx', route: 0
-BGM_CHANNEL = id: 'bgm', route: 1 
+BGM_CHANNEL = id: 'bgm', route: 1
 playAudio = (sfx, channel) ->
   console.warn "TODO - play audio #{sfx} on channel #{channel.id} with route #{channel.route}"
   # TODO - [rmarks] implement multi-channel sfx playback
@@ -33,7 +33,7 @@ class Game
     @system =
       data: new Data
     @images = {}
-    @score = 0 
+    @score = 0
     @lives = 3
   
   preload: (onComplete) ->
@@ -61,7 +61,7 @@ class Game
     @tileset = assets.tileset
     
     parentElement = document.getElementById 'container'
-    @stage = new Canvas @width, @height, parentElement
+    @stage = new Stage @width, @height, parentElement
     @stage.onResize = ->
       @sendMessage redraw, @, @
     @stage.onResize = @stage.onResize.bind @
@@ -133,7 +133,7 @@ class Game
       coin: -> playAudio 'bling', SFX_CHANNEL
       pit: ->
         msg =
-          event: 'pit-fallen' 
+          event: 'pit-fallen'
         @sendMessage msg, @, @
         
     {tile} = message.payload
