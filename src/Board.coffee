@@ -85,14 +85,17 @@ class Board
     tile.reveal() for tile in @tiles
   
   calculateBoardTransform: ->
+    {game} = @
+    
     # we scale the board for effect
-    @scale =
+    scale =
       x: 1.5
       y: 1.5
     
     # we need to center the board in our game canvas
-    @offsetX = (@game.canvas.width - (@scale.x * BOARD_WIDTH)) * 0.5 | 0
-    @offsetY = (@game.canvas.height - (@scale.y * BOARD_HEIGHT)) * 0.5 | 0
+    @offsetX = (game.canvas.width - (scale.x * BOARD_WIDTH)) * 0.5 | 0
+    @offsetY = (game.canvas.height - (scale.y * BOARD_HEIGHT)) * 0.5 | 0
+    @scale = scale
 
   reset: ->
     # re-generate a new board
@@ -109,6 +112,9 @@ class Board
     @tiles[x + y * BOARD_COLS]
   
   getTransformedMouseCoordinates: (mouseX, mouseY) ->
+    # we have to re-calculate the board transform now because the
+    # stage scaling is applied for each window resize event
+    @calculateBoardTransform()
     # because we transform the board we have to
     # transform the mouse coordinates in kind
     {offsetX, offsetY, scale} = @

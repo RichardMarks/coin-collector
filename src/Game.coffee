@@ -33,6 +33,8 @@ class Game
     @system =
       data: new Data
     @images = {}
+    @width = 960
+    @height = 540
     @score = 0
     @lives = 3
   
@@ -56,50 +58,72 @@ class Game
     load name, path for own name, path of manifest
     
   create: (assets) ->
-    @width = 960
-    @height = 540
+    
     @tileset = assets.tileset
     
+    # create the Stage instance
     parentElement = document.getElementById 'container'
     @stage = new Stage @width, @height, parentElement
-    @stage.onResize = ->
-      @sendMessage redraw, @, @
-    @stage.onResize = @stage.onResize.bind @
-    # TODO - [rmarks] fix scaling
-    # @stage.enableScale true
+    
+    # expose rendering context and canvas from the Stage
     {ctx, canvas} = @stage
     @canvas = canvas
     @ctx = ctx
     
+    # board must be created AFTER the stage
+    @board = new Board @
+    # stage needs to redraw on resize
+    @stage.onResize = -> @sendMessage redraw, @, @
+    # stage resize method needs to have a "this" of the Game instance
+    # otherwise the message sending code will fail
+    @stage.onResize = @stage.onResize.bind @
+    
+    # scaling has to be enabled AFTER the board is created because
+    # the resize method above will get called during enabling the
+    # scaling of the stage
+    @stage.enableScale true
+    
+    @setupDOM assets
+    @setupEvents()
+    
+    # draw the initial screen
+    @sendMessage redraw, @, @
+  
+  setupDOM: (assets) ->
     document.title = 'Coin Collector'
     document.body.style.background = "#317830 url('#{assets.grass.src}') repeat"
-    
+    {ctx, canvas} = @
     grass = ctx.createPattern assets.grass, 'repeat'
     ctx.fillStyle = grass
     ctx.fillRect 0, 0, canvas.width, canvas.height
     
-    @board = new Board @
-    @drawBoard @board.tiles, ctx
-
-    onClick = @board.clicked.bind @board
-    canvas.addEventListener 'click', onClick, false
-    
     scoreDiv = document.createElement 'div'
-    Object.assign scoreDiv.style, HUD_STYLE
-    document.body.appendChild scoreDiv
-    @updateScore = -> scoreDiv.innerText = "SCORE: #{@score}"
-    @updateScore = @updateScore.bind @
-    @updateScore()
-    
     livesDiv = document.createElement 'div'
+    
+    Object.assign scoreDiv.style, HUD_STYLE
     Object.assign livesDiv.style, HUD_STYLE
+    
+    document.body.appendChild scoreDiv
     document.body.appendChild livesDiv
+    
+    @updateScore = -> scoreDiv.innerText = "SCORE: #{@score}"
     @updateLives = -> livesDiv.innerText = "LIVES: #{@lives}"
+    @updateScore = @updateScore.bind @
     @updateLives = @updateLives.bind @
+    @updateScore()
     @updateLives()
+    
+  setupEvents: ->
+    onClick = @board.clicked.bind @board
+    @canvas.addEventListener 'click', onClick, false
   
   drawBoard: (tiles, ctx) ->
-    {offsetX, offsetY, scale} = @board
+    {stage, board} = @
+    {offsetX, offsetY, scale} = board
+    
+    # our rendering context transformation is scaled to our
+    # stage scale factor at this point
+    
     ctx.save()
     ctx.translate offsetX, offsetY
     ctx.scale scale.x, scale.y
@@ -124,7 +148,12 @@ class Game
   #
   
   onDraw: (message) ->
-    @drawBoard @board.tiles, @ctx
+    {ctx, stage, width, height} = @
+    ctx.clearRect 0, 0, width, height
+    ctx.save()
+    ctx.scale stage.scale.x, stage.scale.y
+    @drawBoard @board.tiles, ctx
+    ctx.restore()
     
   onRevealedTile: (message) ->
     @sendMessage redraw, @, @

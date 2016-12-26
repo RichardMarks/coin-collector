@@ -3,12 +3,11 @@ class Stage
     canvas = document.createElement 'canvas'
     canvas.width = @width
     canvas.height = @height
-    # canvas.style.border = '4px solid rgba(60, 0, 60, 35)'
-    # canvas.style.boxModel = 'border-box'
     parentElement.appendChild canvas
     
     @canvas = canvas
     @ctx = canvas.getContext '2d'
+    @scale = x: 1, y: 1
   
   enableScale: (enabled) ->
     if enabled
@@ -48,8 +47,8 @@ class Stage
     @onResize and @onResize()
   
   center: ->
-    top = ((window.innerWidth - @canvas.width) * 0.5) | 0
-    left = ((window.innerHeight - @canvas.height) * 0.5) | 0
+    left = ((window.innerWidth - @canvas.width) * 0.5) | 0
+    top = ((window.innerHeight - @canvas.height) * 0.5) | 0
     style =
       position: 'absolute'
       top: "#{top}px"
