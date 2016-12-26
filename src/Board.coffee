@@ -117,10 +117,19 @@ class Board
     # this returns the transformed coordinates as an object
     x: tx, y: ty
   
+  invalidClick: (transformedMouseX, transformedMouseY) ->
+    # if the mouse is outside the board, the click is invalid 
+    return true if transformedMouseX < 0 or transformedMouseX > BOARD_WIDTH
+    return true if transformedMouseY < 0 or transformedMouseY > BOARD_HEIGHT
+    false
+  
   clicked: (mouseEvent) ->
     mouseX = mouseEvent.clientX or mouseEvent.x
     mouseY = mouseEvent.clientY or mouseEvent.y
-    {x, y} = @getTransformedMouseCoordinates mouseX, mouseY
+    clientRect = @game.canvas.getBoundingClientRect()
+    {x, y} = @getTransformedMouseCoordinates mouseX - clientRect.left, mouseY - clientRect.top
+    return if @invalidClick x, y
+    
     column = x / TILE_WIDTH | 0
     row = y / TILE_HEIGHT | 0
     tile = @tileAt column, row
@@ -140,19 +149,6 @@ class Board
           event: 'revealed-tile'
           payload: payload
         @game.sendMessage message, @, @game
-        
-        # TODO [scollins] heck yeah! successfull pit fallen event handler! except add logic
-        # if lives = 0
-        if tile.kind is 'pit'
-          #tile.kind = 'dirt'
-          message =
-            event: 'pit-fallen'
-            payload:
-              mouseX: mouseX
-              mouseY: mouseY
-              row: row
-              column: column
-          @game.sendMessage message, @, @game
       else
         # special case for clicking twice on a coin, we collect the coin on second click
         if tile.kind is 'coin'

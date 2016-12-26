@@ -1,3 +1,4 @@
+{Canvas} = require './Canvas'
 {Board} = require './Board'
 {Data} = require './Data'
 {pascalize} = require './utils'
@@ -11,12 +12,28 @@ redraw =
 
 POINTS_PER_COIN = 25
 
+SFX_CHANNEL = id: 'sfx', route: 0
+BGM_CHANNEL = id: 'bgm', route: 1 
+playAudio = (sfx, channel) ->
+  console.warn "TODO - play audio #{sfx} on channel #{channel.id} with route #{channel.route}"
+  # TODO - [rmarks] implement multi-channel sfx playback
+
+HUD_STYLE =
+  backgroundColor: '#204060'
+  fontFamily: 'monospace'
+  textAlign: 'center'
+  fontSize: '48px'
+  color: 'white'
+  border: '4px solid black'
+  boxModel: 'border-box'
+  borderRadius: '24px'
+
 class Game
   constructor: ->
     @system =
       data: new Data
     @images = {}
-    @score = 0
+    @score = 0 
     @lives = 3
   
   preload: (onComplete) ->
@@ -38,65 +55,54 @@ class Game
       image.src = path
     load name, path for own name, path of manifest
     
-  create: ->
-    console.warn 'creating Game'
-    @tileset = @images.tileset
+  create: (assets) ->
+    @width = 960
+    @height = 540
+    @tileset = assets.tileset
+    
+    parentElement = document.getElementById 'container'
+    @stage = new Canvas @width, @height, parentElement
+    @stage.onResize = ->
+      @sendMessage redraw, @, @
+    @stage.onResize = @stage.onResize.bind @
+    # TODO - [rmarks] fix scaling
+    # @stage.enableScale true
+    {ctx, canvas} = @stage
+    @canvas = canvas
+    @ctx = ctx
+    
     document.title = 'Coin Collector'
-    @canvas = document.createElement 'canvas'
-    @canvas.width = 960
-    @canvas.height = 540
-    document.body.insertBefore @canvas, document.body.firstChild
-    @ctx = @canvas.getContext '2d'
+    document.body.style.background = "#317830 url('#{assets.grass.src}') repeat"
     
-    grass = @ctx.createPattern @images.grass, 'repeat'
-    @ctx.fillStyle = grass
-    @ctx.fillRect 0, 0, @canvas.width, @canvas.height
+    grass = ctx.createPattern assets.grass, 'repeat'
+    ctx.fillStyle = grass
+    ctx.fillRect 0, 0, canvas.width, canvas.height
     
-    # TODO - [rmarks] need to update Game unit test since we moved the board creation to create from the constructor
     @board = new Board @
-    @drawBoard @board.tiles, @ctx
+    @drawBoard @board.tiles, ctx
 
     onClick = @board.clicked.bind @board
-    @canvas.addEventListener 'click', onClick, false
+    canvas.addEventListener 'click', onClick, false
     
     scoreDiv = document.createElement 'div'
-    style =
-      backgroundColor: '#204060'
-      fontFamily: 'monospace'
-      textAlign: 'center'
-      fontSize: '48px'
-      color: 'white'
-      border: '4px solid black'
-      boxModel: 'border-box'
-      borderRadius: '24px'
-    Object.assign scoreDiv.style, style
+    Object.assign scoreDiv.style, HUD_STYLE
     document.body.appendChild scoreDiv
     @updateScore = -> scoreDiv.innerText = "SCORE: #{@score}"
     @updateScore = @updateScore.bind @
     @updateScore()
     
     livesDiv = document.createElement 'div'
-    style =
-      backgroundColor: '#204060'
-      fontFamily: 'monospace'
-      textAlign: 'center'
-      fontSize: '48px'
-      color: 'white'
-      border: '4px solid black'
-      boxModel: 'border-box'
-      borderRadius: '24px'
-    Object.assign livesDiv.style, style
+    Object.assign livesDiv.style, HUD_STYLE
     document.body.appendChild livesDiv
-    @updatelives = -> livesDiv.innerText = "lives: #{@lives}"
-    @updatelives = @updatelives.bind @
-    @updatelives()
+    @updateLives = -> livesDiv.innerText = "LIVES: #{@lives}"
+    @updateLives = @updateLives.bind @
+    @updateLives()
   
   drawBoard: (tiles, ctx) ->
     {offsetX, offsetY, scale} = @board
     ctx.save()
     ctx.translate offsetX, offsetY
     ctx.scale scale.x, scale.y
-    
     tile.draw ctx for tile in tiles
     ctx.restore()
 
@@ -122,22 +128,21 @@ class Game
     
   onRevealedTile: (message) ->
     @sendMessage redraw, @, @
-    console.log 'todo - handle the action for a tile reveal event'
     actionTable =
-      coin: ->
-        console.log 'found coin'
+      dirt: -> playAudio 'whomp', SFX_CHANNEL
+      coin: -> playAudio 'bling', SFX_CHANNEL
       pit: ->
-        console.log 'found pit'
-      dirt: ->
-        console.log 'found dirt'
-    
+        msg =
+          event: 'pit-fallen' 
+        @sendMessage msg, @, @
+        
     {tile} = message.payload
-    action = actionTable[tile]
+    action = actionTable[tile].bind @
     action and action()
   
   onCoinCollected: (message) ->
+    playAudio 'chaching', SFX_CHANNEL
     @sendMessage redraw, @, @
-    # console.log 'todo - handle collecting a coin'
     @score += POINTS_PER_COIN
     @updateScore()
     if @board.coinsRemaining() <= 0
@@ -147,14 +152,9 @@ class Game
       @gameover = true
 
   onPitFallen: (message) ->
+    playAudio 'fall', SFX_CHANNEL
     @sendMessage redraw, @, @
-    # console.log 'todo - handle collecting a coin'
     @lives -= 1
-    @updatelives()
-
-
-
-
-
+    @updateLives()
 
 module.exports = Game: Game
