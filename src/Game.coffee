@@ -69,6 +69,7 @@ class Game
     {ctx, canvas} = @stage
     @canvas = canvas
     @ctx = ctx
+    @grassFillPattern = ctx.createPattern assets.grass, 'repeat'
     
     # board must be created AFTER the stage
     @board = new Board @
@@ -92,10 +93,6 @@ class Game
   setupDOM: (assets) ->
     document.title = 'Coin Collector'
     document.body.style.background = "#317830 url('#{assets.grass.src}') repeat"
-    {ctx, canvas} = @
-    grass = ctx.createPattern assets.grass, 'repeat'
-    ctx.fillStyle = grass
-    ctx.fillRect 0, 0, canvas.width, canvas.height
     
     scoreDiv = document.createElement 'div'
     livesDiv = document.createElement 'div'
@@ -117,19 +114,6 @@ class Game
     onClick = @board.clicked.bind @board
     @canvas.addEventListener 'click', onClick, false
   
-  drawBoard: (tiles, ctx) ->
-    {stage, board} = @
-    {offsetX, offsetY, scale} = board
-    
-    # our rendering context transformation is scaled to our
-    # stage scale factor at this point
-    
-    ctx.save()
-    ctx.translate offsetX, offsetY
-    ctx.scale scale.x, scale.y
-    tile.draw ctx for tile in tiles
-    ctx.restore()
-
   sendMessage: (message, sender, recepient) ->
     if recepient is @
       @handleMessage message
@@ -148,11 +132,13 @@ class Game
   #
   
   onDraw: (message) ->
-    {ctx, stage, width, height} = @
-    ctx.clearRect 0, 0, width, height
+    {ctx, canvas, board, grassFillPattern} = @
+    {width, height} = canvas
     ctx.save()
-    ctx.scale stage.scale.x, stage.scale.y
-    @drawBoard @board.tiles, ctx
+    ctx.fillStyle = grassFillPattern
+    ctx.fillRect 0, 0, width, height
+    
+    board.draw ctx
     ctx.restore()
     
   onRevealedTile: (message) ->

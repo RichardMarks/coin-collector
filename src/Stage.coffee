@@ -18,13 +18,13 @@ class Stage
       @scaler and window.removeEventListener 'resize', @scaler, false
     
   scaleAspectRatio: ->
-    {canvas} = @
+    {canvas, width, height} = @
     
     # determine orientation
-    portrait = @width < @height
-    aspectRatio = @width / @height
+    @portrait = portrait = width < height
+    aspectRatio = width / height
     if portrait
-      aspectRatio = @height / @width
+      aspectRatio = height / width
     inverseAspect = 1.0 / aspectRatio
     
     # set canvas scale
@@ -36,8 +36,8 @@ class Stage
       canvas.height = window.innerWidth * inverseAspect
     
     # set game scale
-    scaleX = canvas.width / @width
-    scaleY = canvas.height / @height
+    scaleX = canvas.width / width
+    scaleY = canvas.height / height
     @scale = x: scaleX, y: scaleY
     
     # center canvas
@@ -47,12 +47,17 @@ class Stage
     @onResize and @onResize()
   
   center: ->
-    left = ((window.innerWidth - @canvas.width) * 0.5) | 0
-    top = ((window.innerHeight - @canvas.height) * 0.5) | 0
+    {canvas, portrait} = @
+    if portrait
+      top = 0
+      left = ((window.innerWidth - canvas.width) * 0.5) | 0
+    else
+      top = ((window.innerHeight - canvas.height) * 0.5) | 0
+      left = 0
     style =
       position: 'absolute'
       top: "#{top}px"
       left: "#{left}px"
-    Object.assign @canvas.style, style
+    Object.assign canvas.style, style
 
 module.exports = Stage: Stage

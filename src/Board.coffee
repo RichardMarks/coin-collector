@@ -89,13 +89,22 @@ class Board
     
     # we scale the board for effect
     scale =
-      x: 1.5
-      y: 1.5
-    
+      x: 1.5 * game.stage.scale.x
+      y: 1.5 * game.stage.scale.y
+
     # we need to center the board in our game canvas
     @offsetX = (game.canvas.width - (scale.x * BOARD_WIDTH)) * 0.5 | 0
     @offsetY = (game.canvas.height - (scale.y * BOARD_HEIGHT)) * 0.5 | 0
     @scale = scale
+
+  draw: (ctx) ->
+    @calculateBoardTransform()
+    {scale, offsetX, offsetY, tiles} = @
+    ctx.save()
+    ctx.translate offsetX, offsetY
+    ctx.scale scale.x, scale.y
+    tile.draw ctx for tile in tiles
+    ctx.restore()
 
   reset: ->
     # re-generate a new board
@@ -130,6 +139,10 @@ class Board
     false
   
   clicked: (mouseEvent) ->
+    # TODO - [scollins] click event handler has a bug, top left corner of
+    # board does not register click event, first clickable square in top left
+    # corner redraws the entire board down and to the right, "glitchily"
+    # however, the board is "less glitchy" at a window size of 891x427
     mouseX = mouseEvent.clientX or mouseEvent.x
     mouseY = mouseEvent.clientY or mouseEvent.y
     clientRect = @game.canvas.getBoundingClientRect()
