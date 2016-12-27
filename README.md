@@ -4,6 +4,10 @@ coin collector is a small HTML5 game built using CoffeeScript where the objectiv
 
 &copy; 2017, Richard Marks, Stephen Collins, MIT Licensed
 
+# server
+
+https://coin-collector-richardmarks1.c9users.io/
+
 # design
 
 the game consists of a 2D board of 10 x 10 tiles

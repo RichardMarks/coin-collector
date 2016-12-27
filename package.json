@@ -6,12 +6,13 @@
   "scripts": {
     "test": "mocha --compilers coffee:coffee-script/register",
     "watch-test": "mocha --compilers coffee:coffee-script/register --watch",
-    "lint": "coffeelint -f coffeelint.json src",
-    "clobber": "rm -rf node_modules && rm -rf docs",
+    "lint": "gulp lint",
+    "clobber": "gulp clobber",
     "docs": "coffeedoc -o docs src",
     "start": "gulp",
     "build": "gulp build",
-    "clean": "rm -rf dist"
+    "dist": "NODE_ENV=production && gulp build",
+    "clean": "gulp clean"
   },
   "keywords": [
     "CoffeeScript",
@@ -20,23 +21,22 @@
   ],
   "author": "Richard Marks, Stephen Collins",
   "license": "MIT",
-  "dependencies": {
-    "coffee-script": "^1.12.2"
-  },
   "devDependencies": {
-    "browser-sync": "^2.18.5",
     "browserify": "^13.1.1",
     "chai": "^3.5.0",
+    "coffee-script": "^1.12.2",
     "coffeedoc": "^0.3.1",
     "coffeeify": "^2.1.0",
     "coffeelint": "^1.16.0",
     "gulp": "^3.9.1",
     "gulp-coffeeify": "^0.1.8",
+    "gulp-coffeelint": "^0.6.0",
     "gulp-sourcemaps": "^1.9.1",
     "gulp-uglify": "^2.0.0",
     "gulp-util": "^3.0.7",
     "gulp-watch": "^4.3.11",
     "mocha": "^3.2.0",
+    "rimraf": "^2.5.4",
     "sinon": "^1.17.6",
     "sinon-chai": "^2.8.0",
     "vinyl-buffer": "^1.0.0",
