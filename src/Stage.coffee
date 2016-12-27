@@ -35,6 +35,12 @@ class Stage
       canvas.width = window.innerWidth
       canvas.height = window.innerWidth * inverseAspect
     
+    if canvas.width > window.innerWidth
+      canvas.width = window.innerWidth
+      
+    if canvas.height > window.innerHeight
+      canvas.height = window.innerHeight
+    
     # set game scale
     scaleX = canvas.width / width
     scaleY = canvas.height / height
