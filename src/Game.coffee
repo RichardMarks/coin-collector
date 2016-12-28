@@ -2,6 +2,9 @@
 {Board} = require './Board'
 {Data} = require './Data'
 {pascalize} = require './utils'
+{UI} = require './UI'
+
+{UIFontDef, UIText} = UI
 
 {WIDTH, HEIGHT} = Board.dimensions
 BOARD_WIDTH = WIDTH
@@ -27,6 +30,15 @@ HUD_STYLE =
   border: '4px solid black'
   boxModel: 'border-box'
   borderRadius: '24px'
+
+# yes, this is gaudy - just testing things, we can tweak colorings later
+hudFont = new UIFontDef 'monospace', 96, 'bold'
+hudFill = 'red'
+# [
+#   { position: 0, color: 'red' },
+#   { position: 1, color: 'yellow' }
+# ]
+hudStroke = 'orange'
 
 class Game
   constructor: ->
@@ -79,36 +91,68 @@ class Game
     # otherwise the message sending code will fail
     @stage.onResize = @stage.onResize.bind @
     
+    # this needs to be done BEFORE scaling is enabled
+    # otherwise the redraw will try to draw UI items that
+    # do not yet exist
+    @createUI assets
+    
     # scaling has to be enabled AFTER the board is created because
     # the resize method above will get called during enabling the
     # scaling of the stage
     @stage.enableScale true
     
     @setupDOM assets
+    
     @setupEvents()
     
     # draw the initial screen
     @sendMessage redraw, @, @
   
-  setupDOM: (assets) ->
-    document.title = 'Coin Collector'
-    document.body.style.background = "#317830 url('#{assets.grass.src}') repeat"
+  createUI: (assets) ->
+    font = "#{hudFont}"
+    @scoreHUD = new UIText 'SCORE: 0', font, hudFill, hudStroke
+    @livesHUD = new UIText "LIVES: #{@lives}", font, hudFill, hudStroke
     
-    scoreDiv = document.createElement 'div'
-    livesDiv = document.createElement 'div'
+    # @scoreHUD.textAlign = 'center'
+    #@scoreHUD.outline = 4
+    @scoreHUD.x = 0 # @width * 0.5 | 0
+    @scoreHUD.y = 0 # 16
     
-    Object.assign scoreDiv.style, HUD_STYLE
-    Object.assign livesDiv.style, HUD_STYLE
+    # @livesHUD.textAlign = 'right'
+    #@livesHUD.outline = 4
+    @livesHUD.x = @width - 16
+    @livesHUD.y = 16
     
-    document.body.appendChild scoreDiv
-    document.body.appendChild livesDiv
-    
-    @updateScore = -> scoreDiv.innerText = "SCORE: #{@score}"
-    @updateLives = -> livesDiv.innerText = "LIVES: #{@lives}"
+    @updateScore = ->
+      @scoreHUD.text = "SCORE: #{@score}"
+      @sendMessage redraw, @, @
+    @updateLives = ->
+      @livesHUD.text = "LIVES: #{@lives}"
+      @sendMessage redraw, @, @
     @updateScore = @updateScore.bind @
     @updateLives = @updateLives.bind @
     @updateScore()
     @updateLives()
+  
+  setupDOM: (assets) ->
+    document.title = 'Coin Collector'
+    document.body.style.background = "#317830 url('#{assets.grass.src}') repeat"
+    
+    # scoreDiv = document.createElement 'div'
+    # livesDiv = document.createElement 'div'
+    
+    # Object.assign scoreDiv.style, HUD_STYLE
+    # Object.assign livesDiv.style, HUD_STYLE
+    
+    # document.body.appendChild scoreDiv
+    # document.body.appendChild livesDiv
+    
+    # @updateScore = -> scoreDiv.innerText = "SCORE: #{@score}"
+    # @updateLives = -> livesDiv.innerText = "LIVES: #{@lives}"
+    # @updateScore = @updateScore.bind @
+    # @updateLives = @updateLives.bind @
+    # @updateScore()
+    # @updateLives()
     
   setupEvents: ->
     onClick = @board.clicked.bind @board
@@ -132,14 +176,30 @@ class Game
   #
   
   onDraw: (message) ->
-    {ctx, canvas, board, grassFillPattern} = @
+    {ctx, canvas, board, grassFillPattern, scoreHUD, livesHUD, stage} = @
     {width, height} = canvas
+    
     ctx.save()
     ctx.fillStyle = grassFillPattern
     ctx.fillRect 0, 0, width, height
     
     board.draw ctx
+    
     ctx.restore()
+    
+    ctx.save()
+    # ctx.translate scoreHUD.x, scoreHUD.y
+    #ctx.scale stage.scale.x, stage.scale.y
+    scoreHUD.draw ctx
+    ctx.restore()
+    
+    ctx.save()
+    ctx.translate livesHUD.x, livesHUD.y
+    ctx.scale stage.scale.x, stage.scale.y
+    livesHUD.draw ctx
+    ctx.restore()
+    
+    
     
   onRevealedTile: (message) ->
     @sendMessage redraw, @, @
