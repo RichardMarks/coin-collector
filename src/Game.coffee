@@ -3,6 +3,7 @@
 {Data} = require './Data'
 {pascalize} = require './utils'
 {UI} = require './UI'
+{CountDown} = require './Time'
 
 {UIFontDef, UIText} = UI
 
@@ -90,6 +91,11 @@ class Game
     # otherwise the message sending code will fail
     @stage.onResize = @stage.onResize.bind @
     
+    @timer = new CountDown { time: 120 }
+    @timer.onTick = @onTimerTick.bind @
+    @timer.onComplete = @onTimerComplete.bind @
+    @timer.start true
+    
     # this needs to be done BEFORE scaling is enabled
     # otherwise the redraw will try to draw UI items that
     # do not yet exist
@@ -158,9 +164,17 @@ class Game
   
   getTileset: -> @tileset
   
+  onTimerTick: ->
+    console.log "timer tick #{@timer.time}"
+    
+  onTimerComplete: ->
+    console.log "timer done"
+    
+  
   #
   # our game message handler methods
   #
+  
   
   onDraw: (message) ->
     {ctx, canvas, board, grassFillPattern, scoreHUD, livesHUD, stage} = @
