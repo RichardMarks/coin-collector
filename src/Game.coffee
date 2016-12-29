@@ -49,6 +49,8 @@ class Game
     @height = 540
     @score = 0
     @lives = 3
+    # NOTE: [scollins] adding timer property here
+    @timer = 120
   
   preload: (onComplete) ->
     console.warn 'preloading...'
@@ -94,7 +96,7 @@ class Game
     @timer = new CountDown { time: 120 }
     @timer.onTick = @onTimerTick.bind @
     @timer.onComplete = @onTimerComplete.bind @
-    @timer.start true
+    
     
     # this needs to be done BEFORE scaling is enabled
     # otherwise the redraw will try to draw UI items that
@@ -117,6 +119,8 @@ class Game
     font = "#{hudFont}"
     @scoreHUD = new UIText 'SCORE: 0', font, hudFill, hudStroke
     @livesHUD = new UIText "LIVES: #{@lives}", font, hudFill, hudStroke
+    # NOTE: [scollins] adding timerHUD property here
+    @timerHUD = new UIText "Time Left: #{@timer.time}", font, hudFill, hudStroke
     
     @scoreHUD.textAlign = 'right'
     @scoreHUD.outline = 4
@@ -132,17 +136,32 @@ class Game
     @livesHUD.shadowOffsetX = 2
     @livesHUD.shadowOffsetY = 2
     
+    # NOTE: [scollins] more code here
+    # this needs to fully show the text, instead of cutting off the very bottom
+    @timerHUD.textAlign = 'center'
+    @timerHUD.textBaseline = 'bottom'
+    @timerHUD.outline = 4
+    @timerHUD.x = @width * 0.5
+    @timerHUD.y = @height
+    @timerHUD.shadowOffsetX = -2
+    @timerHUD.shadowOffsetY = -2
+    
     @updateScore = ->
       @scoreHUD.text = "SCORE: #{@score}"
       @sendMessage redraw, @, @
     @updateLives = ->
       @livesHUD.text = "LIVES: #{@lives}"
       @sendMessage redraw, @, @
+    @updateTimer = ->
+      @timerHUD.text = "Time Left: #{@timer.time}"
+      @sendMessage redraw, @, @
     @updateScore = @updateScore.bind @
     @updateLives = @updateLives.bind @
+    @updateTimer = @updateTimer.bind @
     @updateScore()
     @updateLives()
-  
+    @timer.start true
+    
   setupDOM: (assets) ->
     document.title = 'Coin Collector'
     document.body.style.background = "#317830 url('#{assets.grass.src}') repeat"
@@ -164,11 +183,11 @@ class Game
   
   getTileset: -> @tileset
   
-  onTimerTick: ->
-    console.log "timer tick #{@timer.time}"
+  onTimerTick: -> @updateTimer()
     
   onTimerComplete: ->
     console.log "timer done"
+    # TODO - [rmark] end game session
     
   
   #
@@ -177,7 +196,7 @@ class Game
   
   
   onDraw: (message) ->
-    {ctx, canvas, board, grassFillPattern, scoreHUD, livesHUD, stage} = @
+    {ctx, canvas, board, grassFillPattern, scoreHUD, livesHUD, timerHUD, stage} = @
     {width, height} = canvas
     
     ctx.save()
@@ -196,6 +215,12 @@ class Game
     ctx.save()
     ctx.scale stage.scale.x, stage.scale.y
     livesHUD.draw ctx
+    ctx.restore()
+    
+    # NOTE: [scollins] added code here
+    ctx.save()
+    ctx.scale stage.scale.x, stage.scale.y
+    timerHUD.draw ctx
     ctx.restore()
     
     
