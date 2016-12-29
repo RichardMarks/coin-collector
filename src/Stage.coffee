@@ -18,7 +18,7 @@ class Stage
       @scaler and window.removeEventListener 'resize', @scaler, false
     
   scaleAspectRatio: ->
-    {canvas, width, height} = @
+    {ctx, canvas, width, height} = @
     
     # determine orientation
     @portrait = portrait = width < height
@@ -51,6 +51,9 @@ class Stage
     
     # handle user event
     @onResize and @onResize()
+    
+    ctx.imageSmoothingEnabled = false
+    ctx.mozImageSmoothing = false
   
   center: ->
     {canvas, portrait} = @

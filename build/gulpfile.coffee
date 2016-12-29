@@ -54,7 +54,12 @@ gulp.task 'assets', ->
   .pipe gulp.dest "#{config.dist}/assets"
   .on 'error', gutil.log
 
-gulp.task 'index', ->
+gulp.task 'style', ->
+  gulp.src './style.css'
+  .pipe gulp.dest "#{config.dist}"
+  .on 'error', gutil.log
+
+gulp.task 'index', ['style'] ->
   gulp.src './index.html'
   .pipe gulp.dest "#{config.dist}"
   .on 'error', gutil.log

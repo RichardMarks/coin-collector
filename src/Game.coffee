@@ -120,7 +120,7 @@ class Game
     @scoreHUD = new UIText 'SCORE: 0', font, hudFill, hudStroke
     @livesHUD = new UIText "LIVES: #{@lives}", font, hudFill, hudStroke
     # NOTE: [scollins] adding timerHUD property here
-    @timerHUD = new UIText "Time Left: #{@timer.time}", font, hudFill, hudStroke
+    @timerHUD = new UIText "TIME: #{@timer.time}", font, hudFill, hudStroke
     
     @scoreHUD.textAlign = 'right'
     @scoreHUD.outline = 4
@@ -139,10 +139,9 @@ class Game
     # NOTE: [scollins] more code here
     # this needs to fully show the text, instead of cutting off the very bottom
     @timerHUD.textAlign = 'center'
-    @timerHUD.textBaseline = 'bottom'
     @timerHUD.outline = 4
     @timerHUD.x = @width * 0.5
-    @timerHUD.y = @height
+    @timerHUD.y = @height - (1.2 * @timerHUD.getMeasuredLineHeight())
     @timerHUD.shadowOffsetX = -2
     @timerHUD.shadowOffsetY = -2
     
@@ -153,7 +152,7 @@ class Game
       @livesHUD.text = "LIVES: #{@lives}"
       @sendMessage redraw, @, @
     @updateTimer = ->
-      @timerHUD.text = "Time Left: #{@timer.time}"
+      @timerHUD.text = "TIME: #{@timer.time}"
       @sendMessage redraw, @, @
     @updateScore = @updateScore.bind @
     @updateLives = @updateLives.bind @
