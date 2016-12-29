@@ -32,13 +32,12 @@ HUD_STYLE =
   borderRadius: '24px'
 
 # yes, this is gaudy - just testing things, we can tweak colorings later
-hudFont = new UIFontDef 'monospace', 96, 'bold'
-hudFill = 'red'
-# [
-#   { position: 0, color: 'red' },
-#   { position: 1, color: 'yellow' }
-# ]
-hudStroke = 'orange'
+hudFont = new UIFontDef 'sans-serif', 32, 'bold'
+hudFill = [
+  { position: 0, color: 'white' },
+  { position: 1, color: '#E6CC77' }
+]
+hudStroke = '#85784D'
 
 class Game
   constructor: ->
@@ -113,15 +112,19 @@ class Game
     @scoreHUD = new UIText 'SCORE: 0', font, hudFill, hudStroke
     @livesHUD = new UIText "LIVES: #{@lives}", font, hudFill, hudStroke
     
-    # @scoreHUD.textAlign = 'center'
-    #@scoreHUD.outline = 4
-    @scoreHUD.x = 0 # @width * 0.5 | 0
-    @scoreHUD.y = 0 # 16
+    @scoreHUD.textAlign = 'right'
+    @scoreHUD.outline = 4
+    @scoreHUD.x = (@width * 0.25 | 0) - 16
+    @scoreHUD.y = 0
+    @scoreHUD.shadowOffsetX = -2
+    @scoreHUD.shadowOffsetY = 2
     
-    # @livesHUD.textAlign = 'right'
-    #@livesHUD.outline = 4
-    @livesHUD.x = @width - 16
-    @livesHUD.y = 16
+    @livesHUD.textAlign = 'left'
+    @livesHUD.outline = 4
+    @livesHUD.x = (@width * 0.75 | 0) + 16
+    @livesHUD.y = 0
+    @livesHUD.shadowOffsetX = 2
+    @livesHUD.shadowOffsetY = 2
     
     @updateScore = ->
       @scoreHUD.text = "SCORE: #{@score}"
@@ -137,22 +140,6 @@ class Game
   setupDOM: (assets) ->
     document.title = 'Coin Collector'
     document.body.style.background = "#317830 url('#{assets.grass.src}') repeat"
-    
-    # scoreDiv = document.createElement 'div'
-    # livesDiv = document.createElement 'div'
-    
-    # Object.assign scoreDiv.style, HUD_STYLE
-    # Object.assign livesDiv.style, HUD_STYLE
-    
-    # document.body.appendChild scoreDiv
-    # document.body.appendChild livesDiv
-    
-    # @updateScore = -> scoreDiv.innerText = "SCORE: #{@score}"
-    # @updateLives = -> livesDiv.innerText = "LIVES: #{@lives}"
-    # @updateScore = @updateScore.bind @
-    # @updateLives = @updateLives.bind @
-    # @updateScore()
-    # @updateLives()
     
   setupEvents: ->
     onClick = @board.clicked.bind @board
@@ -188,13 +175,11 @@ class Game
     ctx.restore()
     
     ctx.save()
-    # ctx.translate scoreHUD.x, scoreHUD.y
-    #ctx.scale stage.scale.x, stage.scale.y
+    ctx.scale stage.scale.x, stage.scale.y
     scoreHUD.draw ctx
     ctx.restore()
     
     ctx.save()
-    ctx.translate livesHUD.x, livesHUD.y
     ctx.scale stage.scale.x, stage.scale.y
     livesHUD.draw ctx
     ctx.restore()

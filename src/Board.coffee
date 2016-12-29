@@ -44,7 +44,7 @@ getRandomTile = ->
     pit: 65
     coin: 10
   
-  chance = baby
+  chance = normal
 
   # build up the selection array
   types = []

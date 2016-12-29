@@ -33,6 +33,10 @@ class UIText
     @outline = 0
     @textAlign = DEFAULT_TEXT_ALIGNMENT
     @textBaseline = DEFAULT_TEXT_BASELINE
+    @shadowColor = 'black'
+    @shadowBlur = 0
+    @shadowOffsetX = 0
+    @shadowOffsetY = 0
   
   setFillStyle: (fill) ->
     @gradientFill = false
@@ -62,15 +66,12 @@ class UIText
       x1 = x2 = @x
       y1 = @y
       y2 = y1 + @getMeasuredLineHeight()
-      gradient = ctx.createLinearGradient x1, y1, x2, y1 + y2
+      gradient = ctx.createLinearGradient x1, y1, x2, y2
       gradient.addColorStop stop.position, stop.color for stop in style
       ctx.fillStyle = gradient
-      console.log 'creating gradient fill', gradient
-      for stop in style
-        console.log "color: #{stop.color} position: #{stop.position}"
     else
       ctx.fillStyle = style
-      console.log 'creating solid fill', style
+    @cacheFillStyle = ctx.fillStyle
   
   applyStrokeStyle: (ctx) ->
     style = @strokeStyle or 'black'
@@ -81,12 +82,9 @@ class UIText
       gradient = ctx.createLinearGradient x1, y1, x2, y2
       gradient.addColorStop stop.position, stop.color for stop in style
       ctx.strokeStyle = gradient
-      console.log 'creating gradient stroke', gradient
-      for stop in style
-        console.log "color: #{stop.color} position: #{stop.position}"
     else
       ctx.strokeStyle = style
-      console.log 'creating solid stroke', style
+    @cacheStrokeStyle = ctx.strokeStyle
   
   draw: (ctx) ->
     {x, y, priorX, priorY, outline} = @
@@ -114,6 +112,12 @@ class UIText
     ctx.font = @font or DEFAULT_FONT
     ctx.textAlign = @textAlign or DEFAULT_TEXT_ALIGNMENT
     ctx.textBaseline = @textBaseline or DEFAULT_TEXT_BASELINE
+    ctx.fillStyle = @cacheFillStyle
+    ctx.strokeStyle = @cacheStrokeStyle
+    ctx.shadowColor = @shadowColor
+    ctx.shadowBlur = @shadowBlur
+    ctx.shadowOffsetX = @shadowOffsetX
+    ctx.shadowOffsetY = @shadowOffsetY
     ctx
     
   drawText: (ctx) ->
