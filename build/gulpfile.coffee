@@ -68,6 +68,7 @@ gulp.task 'build', ['clean', 'lint', 'coffee', 'assets', 'style','index']
 
 gulp.task 'watch', ->
   gulp.watch "./index.html", ['index']
+  gulp.watch "./style.css", ['style']
   gulp.watch "#{config.src}/**/*.coffee", ['lint', 'coffee']
   gulp.watch "#{config.assets}", ['assets']
 
