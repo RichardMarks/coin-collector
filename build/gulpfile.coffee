@@ -59,12 +59,12 @@ gulp.task 'style', ->
   .pipe gulp.dest "#{config.dist}"
   .on 'error', gutil.log
 
-gulp.task 'index', ['style'] ->
+gulp.task 'index', ->
   gulp.src './index.html'
   .pipe gulp.dest "#{config.dist}"
   .on 'error', gutil.log
 
-gulp.task 'build', ['clean', 'lint', 'coffee', 'assets', 'index']
+gulp.task 'build', ['clean', 'lint', 'coffee', 'assets', 'style','index']
 
 gulp.task 'watch', ->
   gulp.watch "./index.html", ['index']
