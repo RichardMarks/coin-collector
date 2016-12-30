@@ -2,6 +2,10 @@
 {Board} = require './Board'
 {Data} = require './Data'
 {pascalize} = require './utils'
+{UI} = require './UI'
+{CountDown} = require './Time'
+
+{UIFontDef, UIText} = UI
 
 {WIDTH, HEIGHT} = Board.dimensions
 BOARD_WIDTH = WIDTH
@@ -28,6 +32,14 @@ HUD_STYLE =
   boxModel: 'border-box'
   borderRadius: '24px'
 
+# yes, this is gaudy - just testing things, we can tweak colorings later
+hudFont = new UIFontDef 'sans-serif', 32, 'bold'
+hudFill = [
+  { position: 0, color: 'white' },
+  { position: 1, color: '#E6CC77' }
+]
+hudStroke = '#85784D'
+
 class Game
   constructor: ->
     @system =
@@ -37,6 +49,8 @@ class Game
     @height = 540
     @score = 0
     @lives = 3
+    # NOTE: [scollins] adding timer property here
+    @timer = 120
   
   preload: (onComplete) ->
     console.warn 'preloading...'
@@ -79,36 +93,77 @@ class Game
     # otherwise the message sending code will fail
     @stage.onResize = @stage.onResize.bind @
     
+    @timer = new CountDown { time: 120 }
+    @timer.onTick = @onTimerTick.bind @
+    @timer.onComplete = @onTimerComplete.bind @
+    
+    
+    # this needs to be done BEFORE scaling is enabled
+    # otherwise the redraw will try to draw UI items that
+    # do not yet exist
+    @createUI assets
+    
     # scaling has to be enabled AFTER the board is created because
     # the resize method above will get called during enabling the
     # scaling of the stage
     @stage.enableScale true
     
     @setupDOM assets
+    
     @setupEvents()
     
     # draw the initial screen
     @sendMessage redraw, @, @
   
+  createUI: (assets) ->
+    font = "#{hudFont}"
+    @scoreHUD = new UIText 'SCORE: 0', font, hudFill, hudStroke
+    @livesHUD = new UIText "LIVES: #{@lives}", font, hudFill, hudStroke
+    # NOTE: [scollins] adding timerHUD property here
+    @timerHUD = new UIText "TIME: #{@timer.time}", font, hudFill, hudStroke
+    
+    @scoreHUD.textAlign = 'right'
+    @scoreHUD.outline = 4
+    @scoreHUD.x = (@width * 0.25 | 0) - 16
+    @scoreHUD.y = 0
+    @scoreHUD.shadowOffsetX = -2
+    @scoreHUD.shadowOffsetY = 2
+    
+    @livesHUD.textAlign = 'left'
+    @livesHUD.outline = 4
+    @livesHUD.x = (@width * 0.75 | 0) + 16
+    @livesHUD.y = 0
+    @livesHUD.shadowOffsetX = 2
+    @livesHUD.shadowOffsetY = 2
+    
+    # NOTE: [scollins] more code here
+    # this needs to fully show the text, instead of cutting off the very bottom
+    @timerHUD.textAlign = 'center'
+    @timerHUD.outline = 4
+    @timerHUD.x = @width * 0.5
+    @timerHUD.y = @height - (1.2 * @timerHUD.getMeasuredLineHeight())
+    @timerHUD.shadowOffsetX = -2
+    @timerHUD.shadowOffsetY = -2
+    
+    @updateScore = ->
+      @scoreHUD.text = "SCORE: #{@score}"
+      @sendMessage redraw, @, @
+    @updateLives = ->
+      @livesHUD.text = "LIVES: #{@lives}"
+      @sendMessage redraw, @, @
+    @updateTimer = ->
+      @timerHUD.text = "TIME: #{@timer.time}"
+      @sendMessage redraw, @, @
+    @updateScore = @updateScore.bind @
+    @updateLives = @updateLives.bind @
+    @updateTimer = @updateTimer.bind @
+    @updateScore()
+    @updateLives()
+    @timer.start true
+    
   setupDOM: (assets) ->
     document.title = 'Coin Collector'
     document.body.style.background = "#317830 url('#{assets.grass.src}') repeat"
-    
-    scoreDiv = document.createElement 'div'
-    livesDiv = document.createElement 'div'
-    
-    Object.assign scoreDiv.style, HUD_STYLE
-    Object.assign livesDiv.style, HUD_STYLE
-    
-    document.body.appendChild scoreDiv
-    document.body.appendChild livesDiv
-    
-    @updateScore = -> scoreDiv.innerText = "SCORE: #{@score}"
-    @updateLives = -> livesDiv.innerText = "LIVES: #{@lives}"
-    @updateScore = @updateScore.bind @
-    @updateLives = @updateLives.bind @
-    @updateScore()
-    @updateLives()
     
   setupEvents: ->
     onClick = @board.clicked.bind @board
@@ -127,19 +182,47 @@ class Game
   
   getTileset: -> @tileset
   
+  onTimerTick: -> @updateTimer()
+    
+  onTimerComplete: ->
+    console.log "timer done"
+    # TODO - [rmark] end game session
+    
+  
   #
   # our game message handler methods
   #
   
+  
   onDraw: (message) ->
-    {ctx, canvas, board, grassFillPattern} = @
+    {ctx, canvas, board, grassFillPattern, scoreHUD, livesHUD, timerHUD, stage} = @
     {width, height} = canvas
+    
     ctx.save()
     ctx.fillStyle = grassFillPattern
     ctx.fillRect 0, 0, width, height
     
     board.draw ctx
+    
     ctx.restore()
+    
+    ctx.save()
+    ctx.scale stage.scale.x, stage.scale.y
+    scoreHUD.draw ctx
+    ctx.restore()
+    
+    ctx.save()
+    ctx.scale stage.scale.x, stage.scale.y
+    livesHUD.draw ctx
+    ctx.restore()
+    
+    # NOTE: [scollins] added code here
+    ctx.save()
+    ctx.scale stage.scale.x, stage.scale.y
+    timerHUD.draw ctx
+    ctx.restore()
+    
+    
     
   onRevealedTile: (message) ->
     @sendMessage redraw, @, @

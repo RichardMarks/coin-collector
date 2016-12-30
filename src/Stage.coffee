@@ -18,7 +18,7 @@ class Stage
       @scaler and window.removeEventListener 'resize', @scaler, false
     
   scaleAspectRatio: ->
-    {canvas, width, height} = @
+    {ctx, canvas, width, height} = @
     
     # determine orientation
     @portrait = portrait = width < height
@@ -35,6 +35,12 @@ class Stage
       canvas.width = window.innerWidth
       canvas.height = window.innerWidth * inverseAspect
     
+    if canvas.width > window.innerWidth
+      canvas.width = window.innerWidth
+      
+    if canvas.height > window.innerHeight
+      canvas.height = window.innerHeight
+    
     # set game scale
     scaleX = canvas.width / width
     scaleY = canvas.height / height
@@ -45,6 +51,9 @@ class Stage
     
     # handle user event
     @onResize and @onResize()
+    
+    ctx.imageSmoothingEnabled = false
+    ctx.mozImageSmoothing = false
   
   center: ->
     {canvas, portrait} = @

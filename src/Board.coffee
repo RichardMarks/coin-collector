@@ -44,7 +44,7 @@ getRandomTile = ->
     pit: 65
     coin: 10
   
-  chance = baby
+  chance = normal
 
   # build up the selection array
   types = []
@@ -89,8 +89,8 @@ class Board
     
     # we scale the board for effect
     scale =
-      x: 1.5 * game.stage.scale.x
-      y: 1.5 * game.stage.scale.y
+      x: 1.4 * game.stage.scale.x
+      y: 1.4 * game.stage.scale.y
 
     # we need to center the board in our game canvas
     @offsetX = (game.canvas.width - (scale.x * BOARD_WIDTH)) * 0.5 | 0
@@ -103,6 +103,8 @@ class Board
     ctx.save()
     ctx.translate offsetX, offsetY
     ctx.scale scale.x, scale.y
+    ctx.fillStyle = 'black'
+    ctx.fillRect -4, -4, BOARD_WIDTH + 8, BOARD_HEIGHT + 8
     tile.draw ctx for tile in tiles
     ctx.restore()
 
