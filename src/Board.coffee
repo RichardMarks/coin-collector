@@ -62,6 +62,7 @@ class Board
     WIDTH: BOARD_WIDTH
     HEIGHT: BOARD_HEIGHT
   # HERE -> thinking about adding click disable flag...
+  @pauseCollectCoins = false
 
   constructor: (@game) ->
     @calculateBoardTransform()
@@ -111,7 +112,7 @@ class Board
 
   reset: ->
     # re-generate a new board
-    for tile in tiles
+    for tile in @tiles
       tile.reset()
       tile.kind = getRandomTile()
     
@@ -142,42 +143,43 @@ class Board
     false
   
   clicked: (mouseEvent) ->
-    mouseX = mouseEvent.clientX or mouseEvent.x
-    mouseY = mouseEvent.clientY or mouseEvent.y
-    clientRect = @game.canvas.getBoundingClientRect()
-    {x, y} = @getTransformedMouseCoordinates mouseX - clientRect.left, mouseY - clientRect.top
-    return if @invalidClick x, y
-    
-    column = x / TILE_WIDTH | 0
-    row = y / TILE_HEIGHT | 0
-    tile = @tileAt column, row
-    
-    if tile
-      if not tile.revealed
-        # flip the tile
-        tile.reveal()
-        # tell the game what was revealed by the click
-        payload =
-          mouseX: mouseX
-          mouseY: mouseY
-          row: row
-          column: column
-          tile: tile.kind
-        message =
-          event: 'revealed-tile'
-          payload: payload
-        @game.sendMessage message, @, @game
-      else
-        # special case for clicking twice on a coin, we collect the coin on second click
-        if tile.kind is 'coin'
-          tile.kind = 'dirt'
+    if not @pauseCollectCoins
+      mouseX = mouseEvent.clientX or mouseEvent.x
+      mouseY = mouseEvent.clientY or mouseEvent.y
+      clientRect = @game.canvas.getBoundingClientRect()
+      {x, y} = @getTransformedMouseCoordinates mouseX - clientRect.left, mouseY - clientRect.top
+      return if @invalidClick x, y
+      
+      column = x / TILE_WIDTH | 0
+      row = y / TILE_HEIGHT | 0
+      tile = @tileAt column, row
+      
+      if tile
+        if not tile.revealed
+          # flip the tile
+          tile.reveal()
+          # tell the game what was revealed by the click
+          payload =
+            mouseX: mouseX
+            mouseY: mouseY
+            row: row
+            column: column
+            tile: tile.kind
           message =
-            event: 'coin-collected'
-            payload:
-              mouseX: mouseX
-              mouseY: mouseY
-              row: row
-              column: column
+            event: 'revealed-tile'
+            payload: payload
           @game.sendMessage message, @, @game
+        else
+          # special case for clicking twice on a coin, we collect the coin on second click
+          if tile.kind is 'coin'
+            tile.kind = 'dirt'
+            message =
+              event: 'coin-collected'
+              payload:
+                mouseX: mouseX
+                mouseY: mouseY
+                row: row
+                column: column
+            @game.sendMessage message, @, @game
   
 module.exports = Board: Board

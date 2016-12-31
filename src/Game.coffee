@@ -253,8 +253,11 @@ class Game
       # HERE -> pause game Timer -success!
       @timer.pauseTimer = true
       # HERE -> disable input
+      @board.pauseCollectCoins = true
       setTimeout( (() =>
         @timer.pauseTimer = false
+        @board.pauseCollectCoins = false
+
         # HERE -> reset board
         @board.reset()
         # HERE -> re-enable input
