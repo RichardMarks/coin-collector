@@ -44,7 +44,7 @@ getRandomTile = ->
     pit: 49#65
     coin: 1#10
   
-  chance = baby # was normal... LOL
+  chance = hard
 
   # build up the selection array
   types = []
@@ -85,6 +85,18 @@ class Board
   
   revealAll: ->
     tile.reveal() for tile in @tiles
+    
+  revealPitTiles: ->
+    tile.reveal() for tile in @tiles when tile.kind is 'pit'
+    console.log('revealPitTiles() is called here!')
+    message =
+      event: 'draw'
+    @game.sendMessage message, @, @game
+  
+  # just for testing purposes
+  revealCoinTiles: ->
+    tile.reveal() for tile in @tiles when tile.kind is 'coin'
+    console.log('revealCoinTiles() is called here!')
   
   calculateBoardTransform: ->
     {game} = @

@@ -87,6 +87,7 @@ class Game
     
     # board must be created AFTER the stage
     @board = new Board @
+    #@board.revealCoinTiles() # for testing
     # stage needs to redraw on resize
     @stage.onResize = -> @sendMessage redraw, @, @
     # stage resize method needs to have a "this" of the Game instance
@@ -244,23 +245,16 @@ class Game
     @score += POINTS_PER_COIN
     @updateScore()
     # perfectly counts and updates remaining coins on the board
+    #@board.revealPitTiles()
     console.log("Coins Remaining: #{@board.coinsRemaining()}")
-    # TESTING
-    @board.revealAll()
     if @board.coinsRemaining() <= 0
-      # this '@board.revealAll()' works fine...adjust to reveal ONLY pits???
-      @board.revealAll()
-      # HERE -> pause game Timer -success!
+      @board.revealPitTiles()
       @timer.pauseTimer = true
-      # HERE -> disable input
       @board.pauseCollectCoins = true
       setTimeout( (() =>
         @timer.pauseTimer = false
         @board.pauseCollectCoins = false
-
-        # HERE -> reset board
         @board.reset()
-        # HERE -> re-enable input
       ) , 1500)
       @gameover = true
       
