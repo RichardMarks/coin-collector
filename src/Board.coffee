@@ -40,11 +40,11 @@ getRandomTile = ->
     pit: 35
     coin: 30
   insane =
-    dirt: 45#25
-    pit: 45#65
-    coin: 10#10
+    dirt: 50#25
+    pit: 49#65
+    coin: 1#10
   
-  chance = insane # was normal... LOL
+  chance = baby # was normal... LOL
 
   # build up the selection array
   types = []
@@ -61,6 +61,7 @@ class Board
     COLUMNS: BOARD_COLS
     WIDTH: BOARD_WIDTH
     HEIGHT: BOARD_HEIGHT
+  # HERE -> thinking about adding click disable flag...
 
   constructor: (@game) ->
     @calculateBoardTransform()
@@ -141,10 +142,6 @@ class Board
     false
   
   clicked: (mouseEvent) ->
-    # TODO - [scollins] click event handler has a bug, top left corner of
-    # board does not register click event, first clickable square in top left
-    # corner redraws the entire board down and to the right, "glitchily"
-    # however, the board is "less glitchy" at a window size of 891x427
     mouseX = mouseEvent.clientX or mouseEvent.x
     mouseY = mouseEvent.clientY or mouseEvent.y
     clientRect = @game.canvas.getBoundingClientRect()

@@ -245,19 +245,22 @@ class Game
     @updateScore()
     # perfectly counts and updates remaining coins on the board
     console.log("Coins Remaining: #{@board.coinsRemaining()}")
+    # TESTING
+    @board.revealAll()
     if @board.coinsRemaining() <= 0
       # this '@board.revealAll()' works fine...adjust to reveal ONLY pits???
       @board.revealAll()
-      # HERE -> pause game Timer (possibly by throwing flag) AND disable input for 1500ms
+      # HERE -> pause game Timer -success!
+      @timer.pauseTimer = true
+      # HERE -> disable input
       setTimeout( (() =>
-        @timer.pauseTimer = true
-        console.log("so this code runs... and #{@timer.pauseTimer}")) , 1500)
-      # HERE -> reset board
-      # @board.reset()
-      # HERE -> continue game Timer and enable input
-      #@sendMessage redraw, @, @
-      # TODO - [rmarks] reset the board
+        @timer.pauseTimer = false
+        # HERE -> reset board
+        @board.reset()
+        # HERE -> re-enable input
+      ) , 1500)
       @gameover = true
+      
 
   onPitFallen: (message) ->
     playAudio 'fall', SFX_CHANNEL
