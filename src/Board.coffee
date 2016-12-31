@@ -40,11 +40,11 @@ getRandomTile = ->
     pit: 35
     coin: 30
   insane =
-    dirt: 25
-    pit: 65
-    coin: 10
+    dirt: 45#25
+    pit: 45#65
+    coin: 10#10
   
-  chance = normal
+  chance = insane # was normal... LOL
 
   # build up the selection array
   types = []

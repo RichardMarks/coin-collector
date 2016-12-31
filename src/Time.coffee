@@ -1,14 +1,18 @@
-
 class CountDown
+
   constructor: ({@time = 120, @delay = 1000}) ->
     @onComplete = ->
     @onTick = ->
+    @pauseTimer = false
   start: (immediate = false) ->
     {delay, onTick, onComplete} = @
     interval = null
     tick = ->
-      onTick and onTick()
-      @time -= 1
+      # NOTE [scollins] well, at least this if statement and flag condition
+      # doesn't break the timer lol
+      if not @pauseTimer
+        onTick and onTick()
+        @time -= 1
       if @time < 0
         clearInterval interval
         onComplete and onComplete()
