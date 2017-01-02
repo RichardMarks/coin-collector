@@ -87,6 +87,7 @@ class Game
     
     # board must be created AFTER the stage
     @board = new Board @
+    #@board.revealCoinTiles() # for testing
     # stage needs to redraw on resize
     @stage.onResize = -> @sendMessage redraw, @, @
     # stage resize method needs to have a "this" of the Game instance
@@ -243,11 +244,20 @@ class Game
     @sendMessage redraw, @, @
     @score += POINTS_PER_COIN
     @updateScore()
+    # perfectly counts and updates remaining coins on the board
+    #@board.revealPitTiles()
+    console.log("Coins Remaining: #{@board.coinsRemaining()}")
     if @board.coinsRemaining() <= 0
-      @board.revealAll()
-      @sendMessage redraw, @, @
-      # TODO - [rmarks] reset the board
+      @board.revealPitTiles()
+      @timer.pauseTimer = true
+      @board.pauseCollectCoins = true
+      setTimeout( (() =>
+        @timer.pauseTimer = false
+        @board.pauseCollectCoins = false
+        @board.reset()
+      ) , 1500)
       @gameover = true
+      
 
   onPitFallen: (message) ->
     playAudio 'fall', SFX_CHANNEL

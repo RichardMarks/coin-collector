@@ -40,11 +40,11 @@ getRandomTile = ->
     pit: 35
     coin: 30
   insane =
-    dirt: 25
-    pit: 65
-    coin: 10
+    dirt: 50#25
+    pit: 49#65
+    coin: 1#10
   
-  chance = normal
+  chance = hard
 
   # build up the selection array
   types = []
@@ -61,6 +61,8 @@ class Board
     COLUMNS: BOARD_COLS
     WIDTH: BOARD_WIDTH
     HEIGHT: BOARD_HEIGHT
+  # HERE -> thinking about adding click disable flag...
+  @pauseCollectCoins = false
 
   constructor: (@game) ->
     @calculateBoardTransform()
@@ -83,6 +85,18 @@ class Board
   
   revealAll: ->
     tile.reveal() for tile in @tiles
+    
+  revealPitTiles: ->
+    tile.reveal() for tile in @tiles when tile.kind is 'pit'
+    console.log('revealPitTiles() is called here!')
+    message =
+      event: 'draw'
+    @game.sendMessage message, @, @game
+  
+  # just for testing purposes
+  revealCoinTiles: ->
+    tile.reveal() for tile in @tiles when tile.kind is 'coin'
+    console.log('revealCoinTiles() is called here!')
   
   calculateBoardTransform: ->
     {game} = @
@@ -110,7 +124,7 @@ class Board
 
   reset: ->
     # re-generate a new board
-    for tile in tiles
+    for tile in @tiles
       tile.reset()
       tile.kind = getRandomTile()
     
@@ -141,46 +155,43 @@ class Board
     false
   
   clicked: (mouseEvent) ->
-    # TODO - [scollins] click event handler has a bug, top left corner of
-    # board does not register click event, first clickable square in top left
-    # corner redraws the entire board down and to the right, "glitchily"
-    # however, the board is "less glitchy" at a window size of 891x427
-    mouseX = mouseEvent.clientX or mouseEvent.x
-    mouseY = mouseEvent.clientY or mouseEvent.y
-    clientRect = @game.canvas.getBoundingClientRect()
-    {x, y} = @getTransformedMouseCoordinates mouseX - clientRect.left, mouseY - clientRect.top
-    return if @invalidClick x, y
-    
-    column = x / TILE_WIDTH | 0
-    row = y / TILE_HEIGHT | 0
-    tile = @tileAt column, row
-    
-    if tile
-      if not tile.revealed
-        # flip the tile
-        tile.reveal()
-        # tell the game what was revealed by the click
-        payload =
-          mouseX: mouseX
-          mouseY: mouseY
-          row: row
-          column: column
-          tile: tile.kind
-        message =
-          event: 'revealed-tile'
-          payload: payload
-        @game.sendMessage message, @, @game
-      else
-        # special case for clicking twice on a coin, we collect the coin on second click
-        if tile.kind is 'coin'
-          tile.kind = 'dirt'
+    if not @pauseCollectCoins
+      mouseX = mouseEvent.clientX or mouseEvent.x
+      mouseY = mouseEvent.clientY or mouseEvent.y
+      clientRect = @game.canvas.getBoundingClientRect()
+      {x, y} = @getTransformedMouseCoordinates mouseX - clientRect.left, mouseY - clientRect.top
+      return if @invalidClick x, y
+      
+      column = x / TILE_WIDTH | 0
+      row = y / TILE_HEIGHT | 0
+      tile = @tileAt column, row
+      
+      if tile
+        if not tile.revealed
+          # flip the tile
+          tile.reveal()
+          # tell the game what was revealed by the click
+          payload =
+            mouseX: mouseX
+            mouseY: mouseY
+            row: row
+            column: column
+            tile: tile.kind
           message =
-            event: 'coin-collected'
-            payload:
-              mouseX: mouseX
-              mouseY: mouseY
-              row: row
-              column: column
+            event: 'revealed-tile'
+            payload: payload
           @game.sendMessage message, @, @game
+        else
+          # special case for clicking twice on a coin, we collect the coin on second click
+          if tile.kind is 'coin'
+            tile.kind = 'dirt'
+            message =
+              event: 'coin-collected'
+              payload:
+                mouseX: mouseX
+                mouseY: mouseY
+                row: row
+                column: column
+            @game.sendMessage message, @, @game
   
 module.exports = Board: Board
