@@ -22,7 +22,7 @@ config =
   assets: path.resolve './assets'
   main: 'main.js'
   node: path.resolve './node_modules'
-  port: 8000
+  port: 8080
 
 gulp.task 'clobber', (onComplete) -> rimraf config.node, onComplete
 gulp.task 'clean', (onComplete) -> rimraf config.dist, onComplete
