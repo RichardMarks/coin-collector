@@ -10,7 +10,7 @@ class CountDown
       clearInterval @_interval
       @isPaused = true
       @_interval = null
-  resume: -> 
+  resume: ->
     if @isPaused
       @isPaused = false
       @start true
