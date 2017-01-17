@@ -244,7 +244,11 @@ class Game
     @score += POINTS_PER_COIN
     @updateScore()
     if @board.coinsRemaining() <= 0
-      @board.revealAll()
+      {board, timer} = @
+      resume = ->
+        board.reset()
+        timer.resume()
+      setTimeout resume, 1500
       @sendMessage redraw, @, @
       # TODO - [rmarks] reset the board
       @gameover = true
