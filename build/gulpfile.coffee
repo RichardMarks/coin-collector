@@ -13,12 +13,16 @@ uglify = require 'gulp-uglify'
 coffeelint = require 'gulp-coffeelint'
 rimraf = require 'rimraf'
 
+gwatch = require 'gulp-watch'
+connect = require 'gulp-connect'
+
 config =
   src: path.resolve './src'
   dist: path.resolve './dist'
   assets: path.resolve './assets'
   main: 'main.js'
   node: path.resolve './node_modules'
+  port: 8080
 
 gulp.task 'clobber', (onComplete) -> rimraf config.node, onComplete
 gulp.task 'clean', (onComplete) -> rimraf config.dist, onComplete
@@ -37,7 +41,7 @@ gulp.task 'coffee', ->
     transform: ['coffeeify']
   ugly =
     debug: DEBUG
-    options: 
+    options:
       sourceMap: true
   browserify cfg
   .bundle()
@@ -64,6 +68,20 @@ gulp.task 'index', ->
   .pipe gulp.dest "#{config.dist}"
   .on 'error', gutil.log
 
+gulp.task 'serve', ->
+  DEBUG = true
+  cfg =
+    debug: DEBUG
+    port: config.port
+    livereload: true
+    root: config.dist
+  connect.server cfg
+
+gulp.task 'livereload', ->
+  gulp.src config.dist
+  .pipe gwatch config.dist
+  .pipe connect.reload()
+
 gulp.task 'build', ['clean', 'lint', 'coffee', 'assets', 'style','index']
 
 gulp.task 'watch', ->
@@ -72,4 +90,4 @@ gulp.task 'watch', ->
   gulp.watch "#{config.src}/**/*.coffee", ['lint', 'coffee']
   gulp.watch "#{config.assets}", ['assets']
 
-gulp.task 'default', ['build', 'watch']
+gulp.task 'default', ['build','serve','livereload', 'watch']
