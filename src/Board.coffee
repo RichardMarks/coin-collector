@@ -83,6 +83,9 @@ class Board
   
   revealAll: ->
     tile.reveal() for tile in @tiles
+
+  revealAllPits: ->
+    tile.reveal() for tile in @tiles when tile.kind is 'pit'
   
   calculateBoardTransform: ->
     {game} = @
@@ -110,7 +113,7 @@ class Board
 
   reset: ->
     # re-generate a new board
-    for tile in tiles
+    for tile in @tiles
       tile.reset()
       tile.kind = getRandomTile()
     
