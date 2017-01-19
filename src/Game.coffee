@@ -49,8 +49,7 @@ class Game
     @height = 540
     @score = 0
     @lives = 3
-    # NOTE: [scollins] adding timer property here
-    @timer = 120
+    @coinsCollectedFromLastPit = 0
   
   preload: (onComplete) ->
     console.warn 'preloading...'
@@ -87,6 +86,7 @@ class Game
     
     # board must be created AFTER the stage
     @board = new Board @
+    @board.revealAll()
     # stage needs to redraw on resize
     @stage.onResize = -> @sendMessage redraw, @, @
     # stage resize method needs to have a "this" of the Game instance
@@ -216,7 +216,6 @@ class Game
     livesHUD.draw ctx
     ctx.restore()
     
-    # NOTE: [scollins] added code here
     ctx.save()
     ctx.scale stage.scale.x, stage.scale.y
     timerHUD.draw ctx
@@ -241,9 +240,17 @@ class Game
   onCoinCollected: (message) ->
     playAudio 'chaching', SFX_CHANNEL
     @sendMessage redraw, @, @
+    @coinsCollectedFromLastPit += 1
+    console.log("@coinsCollectedFromLastPit: #{@coinsCollectedFromLastPit}
+    \n@time: #{@timer.time} ")
+    if @coinsCollectedFromLastPit == 3 and @timer.time < 120
+      console.log("more time! add 5 seconds")
+      @timer.time += 5
+      @coinsCollectedFromLastPit = 0
     @score += POINTS_PER_COIN
     @updateScore()
     if @board.coinsRemaining() <= 0
+      @board.revealAllPits()
       {board, timer} = @
       resume = ->
         board.reset()
@@ -258,5 +265,6 @@ class Game
     @sendMessage redraw, @, @
     @lives -= 1
     @updateLives()
+    @coinsCollectedFromLastPit = 0
 
 module.exports = Game: Game

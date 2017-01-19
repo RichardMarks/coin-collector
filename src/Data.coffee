@@ -3,12 +3,12 @@
 
 class Data
   ###
-  The Data class is responsible for saving and loading game data to local storage
-  in a secure (enough for simple games) format
+  #The Data class is responsible for saving and loading game data to local storage
+  #in a secure (enough for simple games) format
   ###
   constructor: ->
     ###
-    Initializes the internal data storage container
+    #Initializes the internal data storage container
     ###
     @store = window.localStorage
     lastUUID = @store.getItem btoa 'lastUUID'
@@ -21,10 +21,10 @@ class Data
 
   write: (pref, value) ->
     ###
-    Writes a data value to storage in a secure format
+    # Writes a data value to storage in a secure format
     
-        @param {string} pref - the name of the preference
-        @param {string} value - the value to write
+    #     @param {string} pref - the name of the preference
+    #     @param {string} value - the value to write
         
     ###
     uuid = @uuid
@@ -35,10 +35,10 @@ class Data
 
   read: (pref) ->
     ###
-    Reads previously written data
+    # Reads previously written data
     
-        @param {string} pref - the name of the preference
-        @returns {string} the value or undefined if preference not found
+    #     @param {string} pref - the name of the preference
+    #     @returns {string} the value or undefined if preference not found
     
     ###
     uuid = @uuid
