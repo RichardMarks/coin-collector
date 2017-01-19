@@ -152,7 +152,7 @@ class Board
     mouseY = mouseEvent.clientY or mouseEvent.y
     clientRect = @game.canvas.getBoundingClientRect()
     {x, y} = @getTransformedMouseCoordinates mouseX - clientRect.left, mouseY - clientRect.top
-    return if @invalidClick x, y
+    return {x,y} if @invalidClick x, y
     
     column = x / TILE_WIDTH | 0
     row = y / TILE_HEIGHT | 0

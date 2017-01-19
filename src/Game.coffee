@@ -171,8 +171,13 @@ class Game
     document.body.style.background = "#317830 url('#{assets.grass.src}') repeat"
     
   setupEvents: ->
-    onClick = @board.clicked.bind @board
-    @canvas.addEventListener 'click', onClick, false
+    clicked = @board.clicked.bind @board
+    onGameClick = (mouseEvent) ->
+      response = clicked mouseEvent
+      if 'x' of response and 'y' of response
+        # game needs to process response.x
+        console.warn "click X is: #{response['x']} and click y is: #{response['y']}"
+    @canvas.addEventListener 'click', onGameClick, false
   
   sendMessage: (message, sender, recepient) ->
     if recepient is @
