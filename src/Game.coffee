@@ -50,6 +50,11 @@ class Game
     @score = 0
     @lives = 3
     @coinsCollectedFromLastPit = 0
+
+  # submitScore = ->
+  #   @highscores.push @score
+  #   @highscores.sort()
+  #   @highscores = @highscores[0...10]
   
   preload: (onComplete) ->
     console.warn 'preloading...'
