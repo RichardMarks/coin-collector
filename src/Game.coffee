@@ -50,7 +50,7 @@ class Game
     @score = 0
     @lives = 3
     @coinsCollectedFromLastPit = 0
-
+    @pauseButton = {}
   # submitScore = ->
   #   @highscores.push @score
   #   @highscores.sort()
@@ -61,6 +61,7 @@ class Game
     manifest =
       tileset: 'assets/coin.png'
       grass: 'assets/grass.png'
+      pauseButton: 'assets/play.png'
     count = (k for k, i of manifest).length
     images = @images
     load = (name, path) ->
@@ -124,7 +125,6 @@ class Game
     font = "#{hudFont}"
     @scoreHUD = new UIText 'SCORE: 0', font, hudFill, hudStroke
     @livesHUD = new UIText "LIVES: #{@lives}", font, hudFill, hudStroke
-    # NOTE: [scollins] adding timerHUD property here
     @timerHUD = new UIText "TIME: #{@timer.time}", font, hudFill, hudStroke
     
     @scoreHUD.textAlign = 'right'
@@ -141,8 +141,6 @@ class Game
     @livesHUD.shadowOffsetX = 2
     @livesHUD.shadowOffsetY = 2
     
-    # NOTE: [scollins] more code here
-    # this needs to fully show the text, instead of cutting off the very bottom
     @timerHUD.textAlign = 'center'
     @timerHUD.outline = 4
     @timerHUD.x = @width * 0.5
@@ -150,6 +148,13 @@ class Game
     @timerHUD.shadowOffsetX = -2
     @timerHUD.shadowOffsetY = -2
     
+    @pauseButton.src = assets.pauseButton #ctx.drawImage assets.pauseButton, 25, 25
+    @pauseButton.x = (@width * 0.25 | 0) - 128 #100
+    @pauseButton.y = @height * 0.5 #225
+    
+
+
+
     @updateScore = ->
       @scoreHUD.text = "SCORE: #{@score}"
       @sendMessage redraw, @, @
@@ -172,11 +177,100 @@ class Game
     
   setupEvents: ->
     clicked = @board.clicked.bind @board
+    {pauseButton, ctx, stage, board} = @
+    size =
+      width: stage.canvas.width
+      height: stage.canvas.height
+    onClick = (mouseEvent) ->
+      
+      clientRect = stage.canvas.getBoundingClientRect()
+      mouseX = mouseEvent.clientX or mouseEvent.x
+      mouseY = mouseEvent.clientY or mouseEvent.y
+      x = mouseX - clientRect.left
+      y = mouseY - clientRect.top
+      x = (x / size.width) * stage.width | 0
+      y = (y / size.height) * stage.height | 0
+      ctx.save()
+      ctx.fillStyle = 'pink'
+      ctx.fillRect mouseX  * (1/ stage.scale.x),mouseY*(1/ stage.scale.y), 7,7
+      ctx.restore()
+
     onGameClick = (mouseEvent) ->
+      # UL = Upper left
+      # UR = Upper right
+      # LL = Lower left
+      # LR = Lower Right
+
+      mouseX = mouseEvent.clientX or mouseEvent.x
+      mouseY = mouseEvent.clientY or mouseEvent.y
+
+      pauseScaled_UL =
+        x: pauseButton.x * stage.scale.x
+        y: pauseButton.y * stage.scale.y
+      
+      pauseScaled_UR =
+        x: (pauseButton.x + 50) * stage.scale.x
+        y: pauseButton.y * stage.scale.y
+      
+      pauseScaled_LL =
+        x: pauseButton.x * stage.scale.x
+        y: (pauseButton.y + 50) * stage.scale.y
+      
+      pauseScaled_LR =
+        x: (pauseButton.x + 50) * stage.scale.x
+        y: (pauseButton.y + 50) * stage.scale.y
+
+      console.log "UL -> x: #{pauseScaled_UL.x} y: #{pauseScaled_UL.y}"
+      console.log "mouseClick -> x: #{mouseEvent.clientX} y: #{mouseEvent.clientY}"
+      console.log "UR -> x: #{pauseScaled_UR.x} y: #{pauseScaled_UR.y}"
+
+      if mouseX >= pauseScaled_UL.x and mouseX <= pauseScaled_UR.x
+        console.log 'bing!'
+      
       response = clicked mouseEvent
       if 'x' of response and 'y' of response
-        # game needs to process response.x
-        console.warn "click X is: #{response['x']} and click y is: #{response['y']}"
+
+        # testing the drawing of pause button coordinates here!
+
+        ctx.save()
+        ctx.fillStyle = 'pink'
+        ctx.fillRect mouseEvent.x,mouseEvent.y, 7,7
+        ctx.restore()
+
+        ctx.save()
+        ctx.fillStyle = 'pink'
+        ctx.fillRect pauseButton.x * stage.scale.x
+        ,pauseButton.y * stage.scale.y,7,7
+        ctx.restore()
+        
+
+        ctx.save()
+        ctx.fillStyle = 'pink'
+        ctx.fillRect (pauseButton.x+50) * stage.scale.x
+        ,(pauseButton.y+50) * stage.scale.y,7,7
+        ctx.restore()
+
+        ctx.save()
+        ctx.fillStyle = 'pink'
+        ctx.fillRect (pauseButton.x) * stage.scale.x
+        ,(pauseButton.y+50) * stage.scale.y,7,7
+        ctx.restore()
+
+        ctx.save()
+        ctx.fillStyle = 'pink'
+        ctx.fillRect (pauseButton.x+50) * stage.scale.x
+        ,(pauseButton.y) * stage.scale.y,7,7
+        ctx.restore()
+
+        ctx.save()
+        ctx.beginPath()
+        ctx.strokeStyle = "white"
+        ctx.moveTo(pauseButton.x * stage.scale.x
+        ,pauseButton.y * stage.scale.y)
+        ctx.lineTo(mouseEvent.x,mouseEvent.y)
+        ctx.stroke()
+        ctx.restore()
+
     @canvas.addEventListener 'click', onGameClick, false
   
   sendMessage: (message, sender, recepient) ->
@@ -198,14 +292,17 @@ class Game
     console.log "timer done"
     # TODO - [rmark] end game session
     
-  
+  pauseGame: ->
+
+
+
   #
   # our game message handler methods
   #
   
   
   onDraw: (message) ->
-    {ctx, canvas, board, grassFillPattern, scoreHUD, livesHUD, timerHUD, stage} = @
+    {ctx, canvas, board, grassFillPattern, pauseButton,scoreHUD, livesHUD, timerHUD, stage} = @
     {width, height} = canvas
     
     ctx.save()
@@ -213,6 +310,14 @@ class Game
     ctx.fillRect 0, 0, width, height
     
     board.draw ctx
+    
+    ctx.restore()
+
+    # drawing of blue rectangle drawing code as temporary stand in for pause button
+    ctx.save()
+    ctx.scale stage.scale.x, stage.scale.y
+    ctx.fillStyle = 'blue'
+    ctx.fillRect @pauseButton.x ,  @pauseButton.y, 50, 50
     
     ctx.restore()
     
@@ -230,7 +335,6 @@ class Game
     ctx.scale stage.scale.x, stage.scale.y
     timerHUD.draw ctx
     ctx.restore()
-    
     
     
   onRevealedTile: (message) ->
