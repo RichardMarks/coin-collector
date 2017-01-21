@@ -148,10 +148,22 @@ class Game
     @timerHUD.shadowOffsetX = -2
     @timerHUD.shadowOffsetY = -2
     
+    # creating pauseButton object here
     @pauseButton.src = assets.pauseButton #ctx.drawImage assets.pauseButton, 25, 25
     @pauseButton.x = (@width * 0.25 | 0) - 128 #100
     @pauseButton.y = @height * 0.5 #225
-    
+    @pauseButton.pause = (ctx,timer, stage, width, height) ->
+      #ctx.save()
+      console.log 'pausing game here!'
+      # console.log timer.isPaused
+      #timer.pause()
+      # timer.isPaused = true
+      # console.log timer.isPaused
+      timer.pause()
+      # ctx.fillStyle = 'black'
+      # ctx.globalAlpha = 0.65
+      # ctx.fillRect 0, 0, width*stage.scale.x, height*stage.scale.y
+      #ctx.save()
 
 
 
@@ -177,7 +189,7 @@ class Game
     
   setupEvents: ->
     clicked = @board.clicked.bind @board
-    {pauseButton, ctx, stage, board} = @
+    {pauseButton, ctx, stage, board,timer,width, height} = @
     size =
       width: stage.canvas.width
       height: stage.canvas.height
@@ -200,6 +212,8 @@ class Game
       # UR = Upper right
       # LL = Lower left
       # LR = Lower Right
+
+      
 
       mouseX = mouseEvent.clientX or mouseEvent.x
       mouseY = mouseEvent.clientY or mouseEvent.y
@@ -224,8 +238,11 @@ class Game
       console.log "mouseClick -> x: #{mouseEvent.clientX} y: #{mouseEvent.clientY}"
       console.log "UR -> x: #{pauseScaled_UR.x} y: #{pauseScaled_UR.y}"
 
-      if mouseX >= pauseScaled_UL.x and mouseX <= pauseScaled_UR.x
-        console.log 'bing!'
+      if mouseX >= pauseScaled_LL.x and mouseX <= pauseScaled_UR.x \
+      and mouseY >= pauseScaled_UL.y and mouseY <= pauseScaled_LR.y
+        #console.log 'bing!'
+        pauseButton.pause(ctx, timer, stage, width, height)
+
       
       response = clicked mouseEvent
       if 'x' of response and 'y' of response
@@ -292,9 +309,6 @@ class Game
     console.log "timer done"
     # TODO - [rmark] end game session
     
-  pauseGame: ->
-
-
 
   #
   # our game message handler methods
@@ -357,6 +371,8 @@ class Game
     @coinsCollectedFromLastPit += 1
     console.log("@coinsCollectedFromLastPit: #{@coinsCollectedFromLastPit}
     \n@time: #{@timer.time} ")
+
+    # TODO: timer adds 5 seconds if around 117-118
     if @coinsCollectedFromLastPit == 3 and @timer.time < 120
       console.log("more time! add 5 seconds")
       @timer.time += 5
@@ -366,6 +382,8 @@ class Game
     if @board.coinsRemaining() <= 0
       @board.revealAllPits()
       {board, timer} = @
+      timer.pause()
+      #console.log timer.pause
       resume = ->
         board.reset()
         timer.resume()
