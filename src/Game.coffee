@@ -240,8 +240,8 @@ class Game
 
       if mouseX >= pauseScaled_LL.x and mouseX <= pauseScaled_UR.x \
       and mouseY >= pauseScaled_UL.y and mouseY <= pauseScaled_LR.y
-        #console.log 'bing!'
-        pauseButton.pause(ctx, timer, stage, width, height)
+        console.log 'bing!'
+        #pauseButton.pause(ctx, timer, stage, width, height)
 
       
       response = clicked mouseEvent
@@ -278,6 +278,8 @@ class Game
         ctx.fillRect (pauseButton.x+50) * stage.scale.x
         ,(pauseButton.y) * stage.scale.y,7,7
         ctx.restore()
+        
+        console.log "scale x: #{stage.scale.x} scale y: #{stage.scale.y}"
 
         ctx.save()
         ctx.beginPath()
