@@ -50,12 +50,20 @@ class Game
     @score = 0
     @lives = 3
     @coinsCollectedFromLastPit = 0
+    @pauseButton = {}
+    @is_gamePaused = false
+    @nextClickContinue = false
+  # submitScore = ->
+  #   @highscores.push @score
+  #   @highscores.sort()
+  #   @highscores = @highscores[0...10]
   
   preload: (onComplete) ->
     console.warn 'preloading...'
     manifest =
       tileset: 'assets/coin.png'
       grass: 'assets/grass.png'
+      pauseButton: 'assets/pause.png'
     count = (k for k, i of manifest).length
     images = @images
     load = (name, path) ->
@@ -119,7 +127,6 @@ class Game
     font = "#{hudFont}"
     @scoreHUD = new UIText 'SCORE: 0', font, hudFill, hudStroke
     @livesHUD = new UIText "LIVES: #{@lives}", font, hudFill, hudStroke
-    # NOTE: [scollins] adding timerHUD property here
     @timerHUD = new UIText "TIME: #{@timer.time}", font, hudFill, hudStroke
     
     @scoreHUD.textAlign = 'right'
@@ -136,8 +143,6 @@ class Game
     @livesHUD.shadowOffsetX = 2
     @livesHUD.shadowOffsetY = 2
     
-    # NOTE: [scollins] more code here
-    # this needs to fully show the text, instead of cutting off the very bottom
     @timerHUD.textAlign = 'center'
     @timerHUD.outline = 4
     @timerHUD.x = @width * 0.5
@@ -145,6 +150,30 @@ class Game
     @timerHUD.shadowOffsetX = -2
     @timerHUD.shadowOffsetY = -2
     
+    # creating pauseButton object here
+    @pauseButton.src = assets.pauseButton
+    @pauseButton.x = (@width * 0.25 | 0) - 128
+    @pauseButton.y = @height * 0.5
+    @pauseButton.pause = (ctx,timer, stage, width, height,canvas,onGameClick,is_gamePaused) ->
+      ctx.save()
+      ctx.fillStyle = 'black'
+      ctx.globalAlpha = 0.65
+      ctx.fillRect 0, 0, width*stage.scale.x, height*stage.scale.y
+      # writing of "click to continue!"
+      ctx.font = 'bold 18px sans-serif'
+      ctx.fillStyle = 'white'
+      ctx.textBaseline = 'center'
+      text1 = 'Click to Continue Playing!'
+      ctx.fillText(text1,
+      canvas.width/ 2-ctx.measureText(text1).width/ 2, canvas.height/ 2)
+      timer.pause()
+      ctx.restore()
+      timer.isPaused = true
+    @pauseButton.resume = (ctx,timer,is_gamePaused) ->
+      timer.resume()
+      @is_gamePaused = is_gamePaused = false
+      ctx.restore()
+
     @updateScore = ->
       @scoreHUD.text = "SCORE: #{@score}"
       @sendMessage redraw, @, @
@@ -166,8 +195,73 @@ class Game
     document.body.style.background = "#317830 url('#{assets.grass.src}') repeat"
     
   setupEvents: ->
-    onClick = @board.clicked.bind @board
-    @canvas.addEventListener 'click', onClick, false
+    clicked = @board.clicked.bind @board
+    {pauseButton, ctx, stage, board,timer,width,
+    height,canvas,is_gamePaused,nextClickContinue} = @
+    size =
+      width: stage.canvas.width
+      height: stage.canvas.height
+    onClick = (mouseEvent) ->
+      
+      clientRect = stage.canvas.getBoundingClientRect()
+      mouseX = mouseEvent.clientX or mouseEvent.x
+      mouseY = mouseEvent.clientY or mouseEvent.y
+      x = mouseX - clientRect.left
+      y = mouseY - clientRect.top
+      x = (x / size.width) * stage.width | 0
+      y = (y / size.height) * stage.height | 0
+      ctx.save()
+      ctx.fillStyle = 'pink'
+      ctx.fillRect mouseX  * (1/ stage.scale.x),mouseY*(1/ stage.scale.y), 7,7
+      ctx.restore()
+
+    onGameClick = (mouseEvent) ->
+      # UL = Upper left
+      # UR = Upper right
+      # LL = Lower left
+      # LR = Lower Right
+
+      if is_gamePaused
+        pauseButton.resume ctx, timer, is_gamePaused
+        ctx.restore()
+        is_gamePaused = false
+        return
+
+      
+
+      mouseX = mouseEvent.clientX or mouseEvent.x
+      mouseY = mouseEvent.clientY or mouseEvent.y
+
+      pauseScaled_UL =
+        x: pauseButton.x * stage.scale.x
+        y: pauseButton.y * stage.scale.y
+      
+      pauseScaled_UR =
+        x: (pauseButton.x + 50) * stage.scale.x
+        y: pauseButton.y * stage.scale.y
+      
+      pauseScaled_LL =
+        x: pauseButton.x * stage.scale.x
+        y: (pauseButton.y + 50) * stage.scale.y
+      
+      pauseScaled_LR =
+        x: (pauseButton.x + 50) * stage.scale.x
+        y: (pauseButton.y + 50) * stage.scale.y
+
+      console.log "UL -> x: #{pauseScaled_UL.x} y: #{pauseScaled_UL.y}"
+      console.log "mouseClick -> x: #{mouseEvent.clientX} y: #{mouseEvent.clientY}"
+      console.log "UR -> x: #{pauseScaled_UR.x} y: #{pauseScaled_UR.y}"
+
+      if mouseX >= pauseScaled_LL.x and mouseX <= pauseScaled_UR.x \
+      and mouseY >= pauseScaled_UL.y and mouseY <= pauseScaled_LR.y
+        console.log 'bing!'
+        is_gamePaused = true
+        console.log "@is_gamePaused is: #{is_gamePaused}"
+        pauseButton.pause(ctx, timer, stage, width, height, canvas)
+
+      response = clicked mouseEvent
+
+    @canvas.addEventListener 'click', onGameClick, false
   
   sendMessage: (message, sender, recepient) ->
     if recepient is @
@@ -188,14 +282,14 @@ class Game
     console.log "timer done"
     # TODO - [rmark] end game session
     
-  
+
   #
   # our game message handler methods
   #
   
   
   onDraw: (message) ->
-    {ctx, canvas, board, grassFillPattern, scoreHUD, livesHUD, timerHUD, stage} = @
+    {ctx, canvas, board, grassFillPattern, pauseButton,scoreHUD, livesHUD, timerHUD, stage} = @
     {width, height} = canvas
     
     ctx.save()
@@ -203,6 +297,15 @@ class Game
     ctx.fillRect 0, 0, width, height
     
     board.draw ctx
+    
+    ctx.restore()
+
+    # drawing of blue rectangle drawing code as temporary stand in for pause button
+    ctx.save()
+    ctx.scale stage.scale.x, stage.scale.y
+    ctx.fillStyle = 'blue'
+    #ctx.fillRect @pauseButton.x ,  @pauseButton.y, 50, 50
+    ctx.drawImage @pauseButton.src, @pauseButton.x, @pauseButton.y, 50, 50
     
     ctx.restore()
     
@@ -220,7 +323,6 @@ class Game
     ctx.scale stage.scale.x, stage.scale.y
     timerHUD.draw ctx
     ctx.restore()
-    
     
     
   onRevealedTile: (message) ->
@@ -243,6 +345,8 @@ class Game
     @coinsCollectedFromLastPit += 1
     console.log("@coinsCollectedFromLastPit: #{@coinsCollectedFromLastPit}
     \n@time: #{@timer.time} ")
+
+    # TODO: timer adds 5 seconds if around 117-118
     if @coinsCollectedFromLastPit == 3 and @timer.time < 120
       console.log("more time! add 5 seconds")
       @timer.time += 5
@@ -252,6 +356,8 @@ class Game
     if @board.coinsRemaining() <= 0
       @board.revealAllPits()
       {board, timer} = @
+      timer.pause()
+
       resume = ->
         board.reset()
         timer.resume()
