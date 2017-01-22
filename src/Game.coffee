@@ -63,7 +63,7 @@ class Game
     manifest =
       tileset: 'assets/coin.png'
       grass: 'assets/grass.png'
-      pauseButton: 'assets/play.png'
+      pauseButton: 'assets/pause.png'
     count = (k for k, i of manifest).length
     images = @images
     load = (name, path) ->
@@ -259,52 +259,7 @@ class Game
         console.log "@is_gamePaused is: #{is_gamePaused}"
         pauseButton.pause(ctx, timer, stage, width, height, canvas)
 
-      
       response = clicked mouseEvent
-      #if 'x' of response and 'y' of response
-
-        # testing the drawing of pause button coordinates here!
-
-        # ctx.save()
-        # ctx.fillStyle = 'pink'
-        # ctx.fillRect mouseEvent.x,mouseEvent.y, 7,7
-        # ctx.restore()
-
-        # ctx.save()
-        # ctx.fillStyle = 'pink'
-        # ctx.fillRect pauseButton.x * stage.scale.x
-        # ,pauseButton.y * stage.scale.y,7,7
-        # ctx.restore()
-        
-
-        # ctx.save()
-        # ctx.fillStyle = 'pink'
-        # ctx.fillRect (pauseButton.x+50) * stage.scale.x
-        # ,(pauseButton.y+50) * stage.scale.y,7,7
-        # ctx.restore()
-
-        # ctx.save()
-        # ctx.fillStyle = 'pink'
-        # ctx.fillRect (pauseButton.x) * stage.scale.x
-        # ,(pauseButton.y+50) * stage.scale.y,7,7
-        # ctx.restore()
-
-        # ctx.save()
-        # ctx.fillStyle = 'pink'
-        # ctx.fillRect (pauseButton.x+50) * stage.scale.x
-        # ,(pauseButton.y) * stage.scale.y,7,7
-        # ctx.restore()
-        
-        # console.log "scale x: #{stage.scale.x} scale y: #{stage.scale.y}"
-
-        # ctx.save()
-        # ctx.beginPath()
-        # ctx.strokeStyle = "white"
-        # ctx.moveTo(pauseButton.x * stage.scale.x
-        # ,pauseButton.y * stage.scale.y)
-        # ctx.lineTo(mouseEvent.x,mouseEvent.y)
-        # ctx.stroke()
-        # ctx.restore()
 
     @canvas.addEventListener 'click', onGameClick, false
   
@@ -349,7 +304,8 @@ class Game
     ctx.save()
     ctx.scale stage.scale.x, stage.scale.y
     ctx.fillStyle = 'blue'
-    ctx.fillRect @pauseButton.x ,  @pauseButton.y, 50, 50
+    #ctx.fillRect @pauseButton.x ,  @pauseButton.y, 50, 50
+    ctx.drawImage @pauseButton.src, @pauseButton.x, @pauseButton.y, 50, 50
     
     ctx.restore()
     
@@ -401,7 +357,7 @@ class Game
       @board.revealAllPits()
       {board, timer} = @
       timer.pause()
-      #console.log timer.pause
+
       resume = ->
         board.reset()
         timer.resume()

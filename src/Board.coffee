@@ -144,10 +144,6 @@ class Board
     false
   
   clicked: (mouseEvent) ->
-    # TODO - [scollins] click event handler has a bug, top left corner of
-    # board does not register click event, first clickable square in top left
-    # corner redraws the entire board down and to the right, "glitchily"
-    # however, the board is "less glitchy" at a window size of 891x427
     mouseX = mouseEvent.clientX or mouseEvent.x
     mouseY = mouseEvent.clientY or mouseEvent.y
     clientRect = @game.canvas.getBoundingClientRect()
