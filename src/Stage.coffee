@@ -19,12 +19,11 @@ class Stage
     
   scaleAspectRatio: ->
     {ctx, canvas, width, height} = @
-    console.log "resize!"
     # determine orientation
     #@portrait = portrait = canvas.width < canvas.height
-    @portrait = canvas.width < canvas.height
+    @portrait = window.innerWidth < window.innerHeight #canvas.width < canvas.height
     aspectRatio = window.innerWidth / window.innerHeight
-    console.log "width is: #{window.innerWidth} and height is: #{window.innerHeight}"
+    #console.log "width is: #{window.innerWidth} and height is: #{window.innerHeight}"
     console.log "portait is #{@portrait}"
     if @portrait
       aspectRatio = canvas.height / canvas.width

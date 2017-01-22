@@ -51,6 +51,8 @@ class Game
     @lives = 3
     @coinsCollectedFromLastPit = 0
     @pauseButton = {}
+    @is_gamePaused = false
+    @nextClickContinue = false
   # submitScore = ->
   #   @highscores.push @score
   #   @highscores.sort()
@@ -149,23 +151,28 @@ class Game
     @timerHUD.shadowOffsetY = -2
     
     # creating pauseButton object here
-    @pauseButton.src = assets.pauseButton #ctx.drawImage assets.pauseButton, 25, 25
-    @pauseButton.x = (@width * 0.25 | 0) - 128 #100
-    @pauseButton.y = @height * 0.5 #225
-    @pauseButton.pause = (ctx,timer, stage, width, height) ->
-      #ctx.save()
-      console.log 'pausing game here!'
-      # console.log timer.isPaused
-      #timer.pause()
-      # timer.isPaused = true
-      # console.log timer.isPaused
+    @pauseButton.src = assets.pauseButton
+    @pauseButton.x = (@width * 0.25 | 0) - 128
+    @pauseButton.y = @height * 0.5
+    @pauseButton.pause = (ctx,timer, stage, width, height,canvas,onGameClick,is_gamePaused) ->
+      ctx.save()
+      ctx.fillStyle = 'black'
+      ctx.globalAlpha = 0.65
+      ctx.fillRect 0, 0, width*stage.scale.x, height*stage.scale.y
+      # writing of "click to continue!"
+      ctx.font = 'bold 18px sans-serif'
+      ctx.fillStyle = 'white'
+      ctx.textBaseline = 'center'
+      text1 = 'Click to Continue Playing!'
+      ctx.fillText(text1,
+      canvas.width/ 2-ctx.measureText(text1).width/ 2, canvas.height/ 2)
       timer.pause()
-      # ctx.fillStyle = 'black'
-      # ctx.globalAlpha = 0.65
-      # ctx.fillRect 0, 0, width*stage.scale.x, height*stage.scale.y
-      #ctx.save()
-
-
+      ctx.restore()
+      timer.isPaused = true
+    @pauseButton.resume = (ctx,timer,is_gamePaused) ->
+      timer.resume()
+      @is_gamePaused = is_gamePaused = false
+      ctx.restore()
 
     @updateScore = ->
       @scoreHUD.text = "SCORE: #{@score}"
@@ -189,7 +196,8 @@ class Game
     
   setupEvents: ->
     clicked = @board.clicked.bind @board
-    {pauseButton, ctx, stage, board,timer,width, height} = @
+    {pauseButton, ctx, stage, board,timer,width,
+    height,canvas,is_gamePaused,nextClickContinue} = @
     size =
       width: stage.canvas.width
       height: stage.canvas.height
@@ -212,6 +220,12 @@ class Game
       # UR = Upper right
       # LL = Lower left
       # LR = Lower Right
+
+      if is_gamePaused
+        pauseButton.resume ctx, timer, is_gamePaused
+        ctx.restore()
+        is_gamePaused = false
+        return
 
       
 
@@ -241,54 +255,56 @@ class Game
       if mouseX >= pauseScaled_LL.x and mouseX <= pauseScaled_UR.x \
       and mouseY >= pauseScaled_UL.y and mouseY <= pauseScaled_LR.y
         console.log 'bing!'
-        #pauseButton.pause(ctx, timer, stage, width, height)
+        is_gamePaused = true
+        console.log "@is_gamePaused is: #{is_gamePaused}"
+        pauseButton.pause(ctx, timer, stage, width, height, canvas)
 
       
       response = clicked mouseEvent
-      if 'x' of response and 'y' of response
+      #if 'x' of response and 'y' of response
 
         # testing the drawing of pause button coordinates here!
 
-        ctx.save()
-        ctx.fillStyle = 'pink'
-        ctx.fillRect mouseEvent.x,mouseEvent.y, 7,7
-        ctx.restore()
+        # ctx.save()
+        # ctx.fillStyle = 'pink'
+        # ctx.fillRect mouseEvent.x,mouseEvent.y, 7,7
+        # ctx.restore()
 
-        ctx.save()
-        ctx.fillStyle = 'pink'
-        ctx.fillRect pauseButton.x * stage.scale.x
-        ,pauseButton.y * stage.scale.y,7,7
-        ctx.restore()
+        # ctx.save()
+        # ctx.fillStyle = 'pink'
+        # ctx.fillRect pauseButton.x * stage.scale.x
+        # ,pauseButton.y * stage.scale.y,7,7
+        # ctx.restore()
         
 
-        ctx.save()
-        ctx.fillStyle = 'pink'
-        ctx.fillRect (pauseButton.x+50) * stage.scale.x
-        ,(pauseButton.y+50) * stage.scale.y,7,7
-        ctx.restore()
+        # ctx.save()
+        # ctx.fillStyle = 'pink'
+        # ctx.fillRect (pauseButton.x+50) * stage.scale.x
+        # ,(pauseButton.y+50) * stage.scale.y,7,7
+        # ctx.restore()
 
-        ctx.save()
-        ctx.fillStyle = 'pink'
-        ctx.fillRect (pauseButton.x) * stage.scale.x
-        ,(pauseButton.y+50) * stage.scale.y,7,7
-        ctx.restore()
+        # ctx.save()
+        # ctx.fillStyle = 'pink'
+        # ctx.fillRect (pauseButton.x) * stage.scale.x
+        # ,(pauseButton.y+50) * stage.scale.y,7,7
+        # ctx.restore()
 
-        ctx.save()
-        ctx.fillStyle = 'pink'
-        ctx.fillRect (pauseButton.x+50) * stage.scale.x
-        ,(pauseButton.y) * stage.scale.y,7,7
-        ctx.restore()
+        # ctx.save()
+        # ctx.fillStyle = 'pink'
+        # ctx.fillRect (pauseButton.x+50) * stage.scale.x
+        # ,(pauseButton.y) * stage.scale.y,7,7
+        # ctx.restore()
         
-        console.log "scale x: #{stage.scale.x} scale y: #{stage.scale.y}"
+        # console.log "scale x: #{stage.scale.x} scale y: #{stage.scale.y}"
 
-        ctx.save()
-        ctx.beginPath()
-        ctx.strokeStyle = "white"
-        ctx.moveTo(pauseButton.x * stage.scale.x
-        ,pauseButton.y * stage.scale.y)
-        ctx.lineTo(mouseEvent.x,mouseEvent.y)
-        ctx.stroke()
-        ctx.restore()
+        # ctx.save()
+        # ctx.beginPath()
+        # ctx.strokeStyle = "white"
+        # ctx.moveTo(pauseButton.x * stage.scale.x
+        # ,pauseButton.y * stage.scale.y)
+        # ctx.lineTo(mouseEvent.x,mouseEvent.y)
+        # ctx.stroke()
+        # ctx.restore()
 
     @canvas.addEventListener 'click', onGameClick, false
   
